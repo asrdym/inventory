@@ -55,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-qty{text-align:right;flex-shrink:0}
 .qn{font-size:18px;font-weight:700}
 .qu{font-size:10px;color:var(--tl)}
-.ql{color:var(--d)}.qk{color:var(--s)}
+.ql{color:var(--d)}.qm{color:var(--w)}.qk{color:var(--s)}
 
 /* Operation page */
 .op-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
@@ -229,8 +229,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="reg-sel" id="regSel"></div>
   <div class="stats">
     <div class="st"><div class="st-n" id="sTotal">-</div><div class="st-l">商品种类</div></div>
-    <div class="st"><div class="st-n" id="sQty">-</div><div class="st-l">总数量</div></div>
-    <div class="st"><div class="st-n" id="sLow">-</div><div class="st-l">库存不足</div></div>
+    <div class="st"><div class="st-n" id="sOk" style="color:var(--s)">-</div><div class="st-l">充足(≥20)</div></div>
+    <div class="st"><div class="st-n" id="sWarn" style="color:var(--w)">-</div><div class="st-l">较缺(10~20)</div></div>
+    <div class="st"><div class="st-n" id="sLow" style="color:var(--d)">-</div><div class="st-l">急缺(<10)</div></div>
+  </div>
+  <div id="lowStockAlert" style="display:none;margin-bottom:12px;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px">
+    <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:6px">🚨 急缺商品</div>
+    <div id="lowStockList" style="font-size:13px;color:#b91c1c;line-height:1.8"></div>
   </div>
   <div class="sbar"><input id="sSearch" placeholder="搜索商品..." autocomplete="off"></div>
   <div id="invList"></div>
@@ -429,9 +434,24 @@ function renderInv(){
     return true;
   }).sort((a,b)=>a.prod.name.localeCompare(b.prod.name));
 
+  const okCount=items.filter(i=>i.quantity>=20).length;
+  const warnCount=items.filter(i=>i.quantity>=10&&i.quantity<20).length;
+  const lowCount=items.filter(i=>i.quantity<10).length;
   document.getElementById('sTotal').textContent=items.length;
-  document.getElementById('sQty').textContent=items.reduce((s,i)=>s+i.quantity,0);
-  document.getElementById('sLow').textContent=items.filter(i=>i.quantity<=5).length;
+  document.getElementById('sOk').textContent=okCount;
+  document.getElementById('sWarn').textContent=warnCount;
+  document.getElementById('sLow').textContent=lowCount;
+
+  // Low stock alert
+  const lowItems=items.filter(i=>i.quantity<10).sort((a,b)=>a.quantity-b.quantity);
+  const alertEl=document.getElementById('lowStockAlert');
+  const alertList=document.getElementById('lowStockList');
+  if(lowItems.length>0){
+    alertEl.style.display='';
+    alertList.innerHTML=lowItems.map(it=>`<span style="display:inline-block;margin-right:8px">${esc(it.prod.name)} <b>(${it.quantity})</b></span>`).join('');
+  }else{
+    alertEl.style.display='none';
+  }
 
   if(!curReg){el.innerHTML='<div class="empty"><div class="empty-icon">🗂️</div><div class="empty-t">请先在设置中添加地区</div></div>';return}
   if(items.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-t">该地区暂无库存</div></div>';return}
@@ -440,7 +460,7 @@ function renderInv(){
   const icons=['📦','🏷️','📋','📌','🔖','📎'];
   el.innerHTML=items.map((it,idx)=>{
     const c=colors[idx%colors.length];const ic=icons[idx%icons.length];
-    const lo=it.quantity<=5;
+    const qtyClass=it.quantity<10?'ql':it.quantity<20?'qm':'qk';
     return`<div class="card">
       <div class="card-icon" style="background:${c}">${ic}</div>
       <div class="card-info">
@@ -448,7 +468,7 @@ function renderInv(){
         <div class="card-meta">${it.prod.category?esc(it.prod.category)+' · ':''}${esc(it.prod.unit||'个')}</div>
       </div>
       <div class="card-qty">
-        <div class="qn ${lo?'ql':'qk'}">${it.quantity}</div>
+        <div class="qn ${qtyClass}">${it.quantity}</div>
         <div class="qu">${esc(it.prod.unit||'个')}</div>
       </div>
     </div>`;
