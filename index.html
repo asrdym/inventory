@@ -6,7 +6,7 @@
 <title>库存管理</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--p:#4f46e5;--pl:#818cf8;--d:#ef4444;--s:#22c55e;--w:#f59e0b;--bg:#f8fafc;--card:#fff;--t:#1e293b;--tl:#64748b;--bd:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.1);--shl:0 4px 12px rgba(0,0,0,.15)}
+:root{--p:#4f46e5;--pl:#818cf8;--d:#ef4444;--s:#22c55e;--w:#f59e0b;--o:#f97316;--bg:#f8fafc;--card:#fff;--t:#1e293b;--tl:#64748b;--bd:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.1);--shl:0 4px 12px rgba(0,0,0,.15)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;padding-bottom:70px;-webkit-tap-highlight-color:transparent}
 
 .hdr{background:var(--p);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:100;box-shadow:var(--shl)}
@@ -19,12 +19,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .section{display:none;padding:12px 14px}
 .section.show{display:block}
 
+/* Big action buttons */
+.action-bar{display:flex;gap:8px;margin-bottom:14px}
+.act-btn{flex:1;padding:14px 0;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:var(--sh);transition:transform .15s}
+.act-btn:active{transform:scale(.95)}
+.act-btn .icon{font-size:24px}
+.act-in{background:#dcfce7;color:#166534}
+.act-out{background:#fee2e2;color:#991b1b}
+.act-transfer{background:#e0f2fe;color:#0c4a6e}
+
 /* Region selector */
 .reg-sel{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
 .reg-sel::-webkit-scrollbar{display:none}
 .reg-chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--bd);background:var(--card);color:var(--tl);cursor:pointer;transition:all .2s;white-space:nowrap}
 .reg-chip.active{background:var(--p);color:#fff;border-color:var(--p)}
-.reg-chip.add{border-style:dashed;color:var(--p);border-color:var(--pl)}
 
 /* Stats */
 .stats{display:flex;gap:8px;margin-bottom:12px}
@@ -48,10 +56,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .qu{font-size:10px;color:var(--tl)}
 .ql{color:var(--d)}.qk{color:var(--s)}
 
-.card-btns{display:flex;gap:4px;margin-top:6px}
-.ab{padding:5px 10px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer}
-.ab-in{background:#dcfce7;color:#166534}.ab-out{background:#fee2e2;color:#991b1b}
-.ab:active{opacity:.7}
+/* Operation page */
+.op-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.op-back{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.op-title{font-size:17px;font-weight:700}
+.op-badge{padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700}
+
+/* Pick row in operation */
+.pick-row{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+.pick-name{flex:1;font-size:14px;font-weight:600}
+.pick-stock{font-size:11px;color:var(--tl);margin-top:2px}
+.pick-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.pick-btn{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pick-btn:active{background:var(--bg)}
+.pick-num{font-size:17px;font-weight:700;min-width:32px;text-align:center}
+.pick-zero{color:var(--bd)}
+
+/* Transfer specific */
+.transfer-reg{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+.transfer-reg .arrow{font-size:20px;color:var(--tl)}
+
+/* Save bar */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:12px 16px;box-shadow:0 -2px 10px rgba(0,0,0,.1);z-index:200;display:none}
+.save-bar.show{display:block}
+.save-btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;font-weight:700;cursor:pointer;background:var(--p);color:#fff}
+.save-btn:active{opacity:.8}
 
 /* FAB */
 .fab{position:fixed;bottom:20px;right:16px;width:52px;height:52px;border-radius:14px;background:var(--p);color:#fff;border:none;font-size:26px;box-shadow:var(--shl);cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center}
@@ -77,7 +106,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .log-card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:var(--sh)}
 .log-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .log-type{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px}
-.log-in{background:#dcfce7;color:#166534}.log-out{background:#fee2e2;color:#991b1b}
+.log-in{background:#dcfce7;color:#166534}.log-out{background:#fee2e2;color:#991b1b}.log-tf{background:#e0f2fe;color:#0c4a6e}
 .log-time{font-size:11px;color:var(--tl)}
 .log-body{font-size:13px;line-height:1.6}
 .log-body b{font-weight:600}
@@ -91,9 +120,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cb{background:var(--card);border-radius:16px;padding:20px;width:85%;max-width:300px;text-align:center}
 .ct{font-size:15px;margin-bottom:16px;line-height:1.5}
 
-/* Toast */
-.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;transition:transform .3s;white-space:nowrap}
-.tt.show{transform:translateX(-50%) translateY(0)}
+/* Done summary */
+.done-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center}
+.done-overlay.show{display:flex}
+.done-box{background:var(--card);border-radius:18px;padding:20px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto}
+.done-icon{font-size:48px;text-align:center;margin-bottom:8px}
+.done-title{font-size:17px;font-weight:700;text-align:center;margin-bottom:14px}
+.done-list{margin-bottom:16px}
+.done-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.done-item:last-child{border-bottom:none}
 
 /* Region manage */
 .rm-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px}
@@ -104,6 +139,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .empty{text-align:center;padding:40px 16px;color:var(--tl)}
 .empty-icon{font-size:40px;margin-bottom:8px}
 .empty-t{font-size:14px}
+
+/* Toast */
+.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;transition:transform .3s;white-space:nowrap}
+.tt.show{transform:translateX(-50%) translateY(0)}
 
 /* Loading */
 .ld{display:flex;justify-content:center;padding:30px}
@@ -116,14 +155,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="hdr"><h1>📦 库存管理</h1></div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="inv">库存</div>
+  <div class="tab active" data-tab="home">首页</div>
   <div class="tab" data-tab="prod">商品</div>
   <div class="tab" data-tab="log">记录</div>
   <div class="tab" data-tab="set">设置</div>
 </div>
 
-<!-- ===== 库存 ===== -->
-<div class="section show" id="sec-inv">
+<!-- ===== 首页 ===== -->
+<div class="section show" id="sec-home">
+  <div class="action-bar">
+    <button class="act-btn act-in" onclick="openOp('in')"><span class="icon">⬆️</span>入库</button>
+    <button class="act-btn act-out" onclick="openOp('out')"><span class="icon">⬇️</span>出库</button>
+    <button class="act-btn act-transfer" onclick="openOp('transfer')"><span class="icon">🔄</span>调货</button>
+  </div>
   <div class="reg-sel" id="regSel"></div>
   <div class="stats">
     <div class="st"><div class="st-n" id="sTotal">-</div><div class="st-l">商品种类</div></div>
@@ -131,8 +175,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="st"><div class="st-n" id="sLow">-</div><div class="st-l">库存不足</div></div>
   </div>
   <div class="sbar"><input id="sSearch" placeholder="搜索商品..." autocomplete="off"></div>
-  <div id="invList"><div class="ld"><div class="sp"></div></div></div>
-  <button class="fab" onclick="openStockModal()">+</button>
+  <div id="invList"></div>
+</div>
+
+<!-- ===== 操作页（入库/出库/调货） ===== -->
+<div class="section" id="sec-op">
+  <div class="op-header">
+    <button class="op-back" onclick="closeOp()">←</button>
+    <div class="op-title" id="opTitle">入库</div>
+    <span class="op-badge" id="opBadge" style="background:#dcfce7;color:#166534">入库</span>
+  </div>
+  <div id="opRegSel"></div>
+  <div id="opTransferReg" style="display:none">
+    <div style="font-size:12px;color:var(--tl);margin-bottom:6px;font-weight:600">调出地区 → 调入地区</div>
+    <div class="transfer-reg">
+      <select class="fi" id="opFromReg" style="flex:1" onchange="renderOpList()"></select>
+      <span class="arrow">→</span>
+      <select class="fi" id="opToReg" style="flex:1" onchange="renderOpList()"></select>
+    </div>
+  </div>
+  <div class="sbar"><input id="opSearch" placeholder="搜索商品..." autocomplete="off" oninput="renderOpList()"></div>
+  <div id="opList"></div>
+  <div style="height:80px"></div>
+  <div class="save-bar show" id="saveBar">
+    <button class="save-btn" onclick="saveOp()">确认提交</button>
+  </div>
 </div>
 
 <!-- ===== 商品 ===== -->
@@ -164,46 +231,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div style="margin-top:16px;padding:14px;background:var(--card);border-radius:12px;box-shadow:var(--sh)">
     <div style="font-size:13px;color:var(--tl);line-height:1.6">
       <b>使用说明</b><br>
-      • 库存页：选择地区查看库存，点击商品可入库/出库<br>
+      • 首页：点击「入库」「出库」「调货」按钮操作库存<br>
       • 商品页：管理商品目录（添加/编辑/删除）<br>
       • 记录页：查看所有操作记录，可回退误操作<br>
       • 设置页：管理地区、导出备份
-    </div>
-  </div>
-</div>
-
-<!-- Stock Modal -->
-<div class="mo" id="stockMo">
-  <div class="md">
-    <div class="mt" id="stockTitle">入库 / 出库</div>
-    <div class="fg">
-      <label class="fl">选择商品 *</label>
-      <select class="fi" id="stProd"></select>
-    </div>
-    <div class="fg">
-      <label class="fl">选择地区 *</label>
-      <select class="fi" id="stReg"></select>
-    </div>
-    <div class="fr">
-      <div class="fg">
-        <label class="fl">类型</label>
-        <select class="fi" id="stType">
-          <option value="in">⬆️ 入库</option>
-          <option value="out">⬇️ 出库</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label class="fl">数量</label>
-        <input class="fi" id="stQty" type="number" value="1" min="1">
-      </div>
-    </div>
-    <div class="fg">
-      <label class="fl">备注（可选）</label>
-      <input class="fi" id="stNote" placeholder="例：销售单号、客户名">
-    </div>
-    <div class="br">
-      <button class="btn bc" onclick="closeMo('stockMo')">取消</button>
-      <button class="btn bp" onclick="doStock()">确认</button>
     </div>
   </div>
 </div>
@@ -250,6 +281,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- Done Summary -->
+<div class="done-overlay" id="doneOverlay">
+  <div class="done-box">
+    <div class="done-icon" id="doneIcon">✅</div>
+    <div class="done-title" id="doneTitle">操作完成</div>
+    <div id="doneInfo" style="font-size:12px;color:var(--tl);text-align:center;margin-bottom:12px"></div>
+    <div class="done-list" id="doneList"></div>
+    <button class="btn bp" onclick="closeDone()" style="width:100%">完成</button>
+  </div>
+</div>
+
 <div class="tt" id="toast"></div>
 
 <script>
@@ -258,7 +300,9 @@ const K='sb_publishable_X58fb-T-0_cZANnv5FVuCQ_sW3GyEfi';
 const H={'apikey':K,'Authorization':`Bearer ${K}`,'Content-Type':'application/json','Prefer':'return=representation'};
 
 let regions=[],products=[],inv=[],logs=[];
-let curReg='',curTab='inv',sq='';
+let curReg='',curTab='home',sq='';
+let opType=''; // 'in','out','transfer'
+let opPicks={}; // {productId: quantity}
 
 // ===== API =====
 async function api(p,o={}){const r=await fetch(U+'/rest/v1/'+p,{...o,headers:{...H,...o.headers}});if(!r.ok)throw new Error(await r.text());const t=await r.text();return t?JSON.parse(t):null}
@@ -304,7 +348,7 @@ function renderInv(){
   document.getElementById('sLow').textContent=items.filter(i=>i.quantity<=5).length;
 
   if(!curReg){el.innerHTML='<div class="empty"><div class="empty-icon">🗂️</div><div class="empty-t">请先在设置中添加地区</div></div>';return}
-  if(items.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-t">该地区暂无库存<br>点击 + 添加</div></div>';return}
+  if(items.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-t">该地区暂无库存</div></div>';return}
 
   const colors=['#e0e7ff','#fce7f3','#d1fae5','#fef3c7','#e0f2fe','#f3e8ff'];
   const icons=['📦','🏷️','📋','📌','🔖','📎'];
@@ -316,10 +360,6 @@ function renderInv(){
       <div class="card-info">
         <div class="card-name">${esc(it.prod.name)}</div>
         <div class="card-meta">${it.prod.category?esc(it.prod.category)+' · ':''}${esc(it.prod.unit||'个')}</div>
-        <div class="card-btns">
-          <button class="ab ab-in" onclick="event.stopPropagation();quickStock('${it.product_id}','${it.region_id}','in')">⬆️入库</button>
-          <button class="ab ab-out" onclick="event.stopPropagation();quickStock('${it.product_id}','${it.region_id}','out')">⬇️出库</button>
-        </div>
       </div>
       <div class="card-qty">
         <div class="qn ${lo?'ql':'qk'}">${it.quantity}</div>
@@ -365,17 +405,22 @@ function renderLog(){
   el.innerHTML=ls.map(l=>{
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
+    const isTf=l.type==='transfer';
     const isIn=l.type==='in';
     const reverted=l.note&&l.note.startsWith('[已回退]');
+    let typeLabel,typeClass;
+    if(isTf){typeLabel='🔄调货';typeClass='log-tf'}
+    else if(isIn){typeLabel='⬆️入库';typeClass='log-in'}
+    else{typeLabel='⬇️出库';typeClass='log-out'}
     return`<div class="log-card ${reverted?'log-reverted':''}">
       <div class="log-hd">
-        <span class="log-type ${isIn?'log-in':'log-out'}">${isIn?'⬆️入库':'⬇️出库'}</span>
+        <span class="log-type ${typeClass}">${typeLabel}</span>
         <span class="log-time">${fmtTime(l.created_at)}</span>
       </div>
       <div class="log-body">
         <b>${esc(p?p.name:'未知商品')}</b> · ${esc(r?r.name:'未知地区')}<br>
-        数量：<b>${isIn?'+':'-'}${l.quantity}</b> ${esc(p?p.unit:'个')}
-        ${l.note?'<br>备注：'+esc(l.note):''}
+        数量：<b>${isIn||isTf?'+':'-'}${l.quantity}</b> ${esc(p?p.unit:'个')}
+        ${l.note&&!l.note.startsWith('[已回退]')?'<br>备注：'+esc(l.note):''}
       </div>
       ${!reverted?`<button class="log-undo" onclick="undoLog('${l.id}','${l.product_id}','${l.region_id}','${l.type}',${l.quantity})">↩️ 回退此操作</button>`:''}
     </div>`;
@@ -406,69 +451,221 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.getElementById('sec-'+t.dataset.tab).classList.add('show');
     curTab=t.dataset.tab;
     sq='';
-    if(curTab==='inv')renderInv();
+    if(curTab==='home'){closeOp();renderInv()}
     if(curTab==='prod')renderProd();
     if(curTab==='log')renderLog();
   };
 });
 
-// ===== SEARCH =====
 document.getElementById('sSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderInv()};
 document.getElementById('pSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderProd()};
 document.getElementById('lSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderLog()};
 
-// ===== STOCK =====
-function openStockModal(){
-  document.getElementById('stProd').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  document.getElementById('stReg').innerHTML=regions.map(r=>`<option value="${r.id}" ${r.id===curReg?'selected':''}>${esc(r.name)}</option>`).join('');
-  document.getElementById('stQty').value=1;
-  document.getElementById('stNote').value='';
-  document.getElementById('stType').value='in';
-  openMo('stockMo');
+// ===== OPERATION (IN/OUT/TRANSFER) =====
+function openOp(type){
+  if(regions.length<1){toast('请先在设置中添加地区');return}
+  if(products.length<1){toast('请先在商品页添加商品');return}
+  if(type==='transfer'&&regions.length<2){toast('调货需要至少两个地区');return}
+
+  opType=type;
+  opPicks={};
+
+  const titleEl=document.getElementById('opTitle');
+  const badgeEl=document.getElementById('opBadge');
+  const tfEl=document.getElementById('opTransferReg');
+  const regEl=document.getElementById('opRegSel');
+
+  if(type==='in'){
+    titleEl.textContent='入库操作';badgeEl.textContent='入库';badgeEl.style.cssText='background:#dcfce7;color:#166534';
+    tfEl.style.display='none';regEl.style.display='';
+    regEl.innerHTML=`<div style="font-size:12px;color:var(--tl);margin-bottom:6px;font-weight:600">选择入库地区</div><div class="reg-sel">${regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selOpReg('${r.id}')">${esc(r.name)}</div>`).join('')}</div>`;
+  }else if(type==='out'){
+    titleEl.textContent='出库操作';badgeEl.textContent='出库';badgeEl.style.cssText='background:#fee2e2;color:#991b1b';
+    tfEl.style.display='none';regEl.style.display='';
+    regEl.innerHTML=`<div style="font-size:12px;color:var(--tl);margin-bottom:6px;font-weight:600">选择出库地区</div><div class="reg-sel">${regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selOpReg('${r.id}')">${esc(r.name)}</div>`).join('')}</div>`;
+  }else{
+    titleEl.textContent='调货操作';badgeEl.textContent='调货';badgeEl.style.cssText='background:#e0f2fe;color:#0c4a6e';
+    regEl.style.display='none';tfEl.style.display='';
+    document.getElementById('opFromReg').innerHTML=regions.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('');
+    document.getElementById('opToReg').innerHTML=regions.map((r,i)=>`<option value="${r.id}" ${i===1?'selected':''}>${esc(r.name)}</option>`).join('');
+  }
+
+  document.getElementById('opSearch').value='';
+  renderOpList();
+  document.getElementById('sec-home').classList.remove('show');
+  document.getElementById('sec-op').classList.add('show');
 }
 
-async function quickStock(pid,rid,type){
-  const p=products.find(pp=>pp.id===pid);
-  const r=regions.find(rr=>rr.id===rid);
-  document.getElementById('stProd').innerHTML=`<option value="${pid}">${esc(p.name)}</option>`;
-  document.getElementById('stReg').innerHTML=`<option value="${rid}">${esc(r.name)}</option>`;
-  document.getElementById('stQty').value=1;
-  document.getElementById('stNote').value='';
-  document.getElementById('stType').value=type;
-  openMo('stockMo');
+function closeOp(){
+  document.getElementById('sec-op').classList.remove('show');
+  document.getElementById('sec-home').classList.add('show');
+  renderInv();
 }
 
-async function doStock(){
-  const pid=document.getElementById('stProd').value;
-  const rid=document.getElementById('stReg').value;
-  const type=document.getElementById('stType').value;
-  const qty=parseInt(document.getElementById('stQty').value)||0;
-  const note=document.getElementById('stNote').value.trim();
-  if(!pid||!rid){toast('请选择商品和地区');return}
-  if(qty<=0){toast('数量必须大于0');return}
+function selOpReg(id){
+  curReg=id;
+  document.querySelectorAll('#opRegSel .reg-chip').forEach(c=>{
+    c.classList.toggle('active',c.textContent===regions.find(r=>r.id===id)?.name);
+  });
+  renderOpList();
+}
+
+function renderOpList(){
+  const el=document.getElementById('opList');
+  const opSq=document.getElementById('opSearch').value.toLowerCase();
+
+  let regId=curReg;
+  if(opType==='transfer')regId=document.getElementById('opFromReg').value;
+
+  const regProducts=products.filter(p=>{
+    if(opSq&&!p.name.toLowerCase().includes(opSq))return false;
+    return true;
+  }).sort((a,b)=>a.name.localeCompare(b.name));
+
+  if(regProducts.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-t">暂无商品</div></div>';return}
+
+  el.innerHTML=regProducts.map(p=>{
+    const invItem=inv.find(i=>i.product_id===p.id&&i.region_id===regId);
+    const stock=invItem?invItem.quantity:0;
+    const picked=opPicks[p.id]||0;
+    const isOut=opType==='out';
+    const isTransfer=opType==='transfer';
+    const maxPick=isOut?stock:99999;
+    const canInc=!isOut||picked<stock;
+
+    return`<div class="pick-row">
+      <div class="card-info">
+        <div class="pick-name">${esc(p.name)}</div>
+        <div class="pick-stock">库存：${stock} ${esc(p.unit||'个')}</div>
+      </div>
+      <div class="pick-ctrl">
+        <button class="pick-btn" onclick="adjPick('${p.id}',-1,${isOut?stock:99999})" ${picked<=0?'style="opacity:.3"':''}>−</button>
+        <div class="pick-num ${picked===0?'pick-zero':''}">${picked}</div>
+        <button class="pick-btn" onclick="adjPick('${p.id}',1,${isOut?stock:99999})" ${!canInc?'style="opacity:.3"':''}>+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adjPick(pid,delta,max){
+  const cur=opPicks[pid]||0;
+  const nv=Math.max(0,Math.min(max,cur+delta));
+  if(nv===0)delete opPicks[pid];else opPicks[pid]=nv;
+  renderOpList();
+}
+
+async function saveOp(){
+  const picks=Object.entries(opPicks).filter(([,v])=>v>0);
+  if(picks.length===0){toast('请至少选择一个商品的数量');return}
+
+  const now=new Date().toISOString();
+  const summary=[];
 
   try{
-    // Upsert inventory
-    const existing=inv.find(i=>i.product_id===pid&&i.region_id===rid);
-    if(existing){
-      const newQty=type==='in'?existing.quantity+qty:Math.max(0,existing.quantity-qty);
-      if(type==='out'&&existing.quantity<qty){toast('库存不足，当前仅 '+existing.quantity);return}
-      await api(`inventory?id=eq.${existing.id}`,{method:'PATCH',body:JSON.stringify({quantity:newQty})});
-      existing.quantity=newQty;
+    if(opType==='transfer'){
+      const fromReg=document.getElementById('opFromReg').value;
+      const toReg=document.getElementById('opToReg').value;
+      if(fromReg===toReg){toast('调出和调入地区不能相同');return}
+
+      for(const[pid,qty]of picks){
+        const fromInv=inv.find(i=>i.product_id===pid&&i.region_id===fromReg);
+        if(!fromInv||fromInv.quantity<qty){
+          const p=products.find(pp=>pp.id===pid);
+          toast(`${p?p.name:'商品'}库存不足，当前仅 ${fromInv?fromInv.quantity:0}`);
+          return;
+        }
+      }
+
+      for(const[pid,qty]of picks){
+        const fromInv=inv.find(i=>i.product_id===pid&&i.region_id===fromReg);
+        await api(`inventory?id=eq.${fromInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:fromInv.quantity-qty})});
+        fromInv.quantity-=qty;
+
+        let toInv=inv.find(i=>i.product_id===pid&&i.region_id===toReg);
+        if(toInv){
+          await api(`inventory?id=eq.${toInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:toInv.quantity+qty})});
+          toInv.quantity+=qty;
+        }else{
+          const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:pid,region_id:toReg,quantity:qty})});
+          inv.push(res[0]);
+        }
+
+        const fromName=regions.find(r=>r.id===fromReg)?.name||'';
+        const toName=regions.find(r=>r.id===toReg)?.name||'';
+        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:fromReg,type:'transfer',quantity:qty,note:`${fromName} → ${toName}`})});
+
+        const p=products.find(pp=>pp.id===pid);
+        summary.push({name:p?p.name:'未知',qty,unit:p?p.unit:'个'});
+      }
+
     }else{
-      if(type==='out'){toast('该地区无此商品库存');return}
-      const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:pid,region_id:rid,quantity:qty})});
-      inv.push(res[0]);
+      const regId=curReg;
+      for(const[pid,qty]of picks){
+        if(opType==='out'){
+          const invItem=inv.find(i=>i.product_id===pid&&i.region_id===regId);
+          if(!invItem||invItem.quantity<qty){
+            const p=products.find(pp=>pp.id===pid);
+            toast(`${p?p.name:'商品'}库存不足，当前仅 ${invItem?invItem.quantity:0}`);
+            return;
+          }
+        }
+      }
+
+      for(const[pid,qty]of picks){
+        let invItem=inv.find(i=>i.product_id===pid&&i.region_id===regId);
+        if(opType==='in'){
+          if(invItem){
+            await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:invItem.quantity+qty})});
+            invItem.quantity+=qty;
+          }else{
+            const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,quantity:qty})});
+            inv.push(res[0]);
+          }
+        }else{
+          await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:invItem.quantity-qty})});
+          invItem.quantity-=qty;
+        }
+
+        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:opType,quantity:qty})});
+
+        const p=products.find(pp=>pp.id===pid);
+        summary.push({name:p?p.name:'未知',qty,unit:p?p.unit:'个'});
+      }
     }
 
-    // Log
-    const logRes=await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:rid,type,quantity:qty,note})});
-    logs.unshift(logRes[0]);
+    // Show done summary
+    const regName=opType==='transfer'?'':regions.find(r=>r.id===curReg)?.name||'';
+    showDone(summary,regName);
 
-    closeMo('stockMo');
-    renderAll();
-    toast(type==='in'?`已入库 +${qty}`:`已出库 -${qty}`);
+    // Reload data in background
+    [products,inv,logs]=await Promise.all([
+      api('products?order=name'),
+      api('inventory'),
+      api('stock_logs?order=created_at.desc&limit=500')
+    ]);
+
   }catch(e){toast('操作失败: '+e.message)}
+}
+
+function showDone(items,regName){
+  const overlay=document.getElementById('doneOverlay');
+  const icon=document.getElementById('doneIcon');
+  const title=document.getElementById('doneTitle');
+  const info=document.getElementById('doneInfo');
+  const list=document.getElementById('doneList');
+
+  if(opType==='in'){icon.textContent='📥';title.textContent='入库完成'}
+  else if(opType==='out'){icon.textContent='📤';title.textContent='出库完成'}
+  else{icon.textContent='🔄';title.textContent='调货完成'}
+
+  info.textContent=regName?`地区：${regName}`:'';
+  list.innerHTML=items.map(it=>`<div class="done-item"><span>${esc(it.name)}</span><span style="font-weight:700">${opType==='out'?'-':'+'}${it.qty} ${esc(it.unit)}</span></div>`).join('');
+  overlay.classList.add('show');
+}
+
+function closeDone(){
+  document.getElementById('doneOverlay').classList.remove('show');
+  closeOp();
 }
 
 // ===== UNDO =====
@@ -476,18 +673,18 @@ async function undoLog(logId,pid,rid,type,qty){
   showCo('确定回退此操作？库存数量将恢复。',async()=>{
     try{
       const logItem=logs.find(l=>l.id===logId);
-      // Reverse the stock change
       const invItem=inv.find(i=>i.product_id===pid&&i.region_id===rid);
       if(invItem){
-        const newQty=type==='in'?Math.max(0,invItem.quantity-qty):invItem.quantity+qty;
+        let newQty;
+        if(type==='in')newQty=Math.max(0,invItem.quantity-qty);
+        else if(type==='out')newQty=invItem.quantity+qty;
+        else newQty=invItem.quantity+qty; // transfer: restore the deducted amount
         await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:newQty})});
         invItem.quantity=newQty;
       }
-      // Mark log as reverted
-      const newNote='[已回退] '+(logItem.note||'');
+      const newNote='[已回退] '+(logItem?.note||'');
       await api(`stock_logs?id=eq.${logId}`,{method:'PATCH',body:JSON.stringify({note:newNote})});
       if(logItem)logItem.note=newNote;
-
       renderAll();
       toast('已回退 ✅');
     }catch(e){toast('回退失败: '+e.message)}
@@ -586,18 +783,6 @@ function delRegion(id,name){
   });
 }
 
-// ===== MODAL HELPERS =====
-function openMo(id){document.getElementById(id).classList.add('show')}
-function closeMo(id){document.getElementById(id).classList.remove('show')}
-function showCo(text,cb){document.getElementById('coText').textContent=text;document.getElementById('coOk').onclick=cb;document.getElementById('coMo').classList.add('show')}
-function closeCo(){document.getElementById('coMo').classList.remove('show')}
-function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000)}
-
-// Close on overlay click
-document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e.target===e.currentTarget)closeMo(m.id)})});
-document.getElementById('coMo').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCo()});
-
-// ===== INIT =====
 // ===== EXPORT =====
 function exportCSV(){
   const rows=[['商品名称','地区','数量','单位','分类','备注']];
@@ -609,18 +794,16 @@ function exportCSV(){
   downloadCSV(rows,'库存备份_'+fmtDate()+'.csv');
   toast('库存数据已导出 ✅');
 }
-
 function exportLogs(){
   const rows=[['时间','类型','商品','地区','数量','备注']];
   logs.forEach(l=>{
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
-    rows.push([fmtTime(l.created_at),l.type==='in'?'入库':'出库',p?p.name:'未知',r?r.name:'未知',l.quantity,l.note||'']);
+    rows.push([fmtTime(l.created_at),l.type==='in'?'入库':l.type==='out'?'出库':'调货',p?p.name:'未知',r?r.name:'未知',l.quantity,l.note||'']);
   });
   downloadCSV(rows,'操作记录_'+fmtDate()+'.csv');
   toast('操作记录已导出 ✅');
 }
-
 function downloadCSV(rows,filename){
   const bom='\uFEFF';
   const csv=bom+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
@@ -630,9 +813,20 @@ function downloadCSV(rows,filename){
   a.download=filename;
   a.click();
 }
-
 function fmtDate(){const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
 
+// ===== MODAL HELPERS =====
+function openMo(id){document.getElementById(id).classList.add('show')}
+function closeMo(id){document.getElementById(id).classList.remove('show')}
+function showCo(text,cb){document.getElementById('coText').textContent=text;document.getElementById('coOk').onclick=cb;document.getElementById('coMo').classList.add('show')}
+function closeCo(){document.getElementById('coMo').classList.remove('show')}
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000)}
+
+document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e.target===e.currentTarget)closeMo(m.id)})});
+document.getElementById('coMo').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCo()});
+document.getElementById('doneOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDone()});
+
+// ===== INIT =====
 loadAll();
 </script>
 </body>
