@@ -331,7 +331,7 @@ function renderRegSel(){
   el.innerHTML=regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selReg('${r.id}')">${esc(r.name)}</div>`).join('');
 }
 
-function selReg(id){curReg=id;renderInv()}
+function selReg(id){curReg=id;renderRegSel();renderInv()}
 
 function renderInv(){
   const el=document.getElementById('invList');
