@@ -136,6 +136,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rm-name{font-size:14px;font-weight:600}
 .rm-del{width:30px;height:30px;border-radius:8px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer}
 
+
+/* Log selection */
+.log-toolbar{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.log-toolbar .btn{flex:none;padding:8px 14px;font-size:12px}
+.log-select{width:18px;height:18px;accent-color:var(--p);cursor:pointer}
+.log-card-wrap{display:flex;align-items:flex-start;gap:8px}
+.log-card-wrap .log-card{flex:1}
+
 /* Empty */
 .empty{text-align:center;padding:40px 16px;color:var(--tl)}
 .empty-icon{font-size:40px;margin-bottom:8px}
@@ -276,6 +284,11 @@ A4纸 x5
 
 <!-- ===== 记录 ===== -->
 <div class="section" id="sec-log">
+  <div class="log-toolbar">
+    <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="log-select" id="logSelectAll" onchange="toggleSelectAll()"> 全选</label>
+    <button class="btn bd" onclick="deleteSelectedLogs()" style="padding:8px 12px;font-size:12px">🗑️ 删除选中</button>
+    <span id="logSelectCount" style="font-size:11px;color:var(--tl)"></span>
+  </div>
   <div class="sbar"><input id="lSearch" placeholder="搜索记录..." autocomplete="off"></div>
   <div id="logList"></div>
 </div>
@@ -373,6 +386,7 @@ const H={'apikey':K,'Authorization':`Bearer ${K}`,'Content-Type':'application/js
 
 let regions=[],products=[],inv=[],logs=[];
 let curReg='',curTab='home',sq='';
+let selectedLogs=new Set();
 let opType=''; // 'in','out','transfer'
 let opPicks={}; // {productId: quantity}
 
@@ -464,6 +478,10 @@ function renderProd(){
 
 function renderLog(){
   const el=document.getElementById('logList');
+  selectedLogs.clear();
+  document.getElementById('logSelectAll').checked=false;
+  document.getElementById('logSelectCount').textContent='';
+
   let ls=logs.filter(l=>{
     if(sq){
       const p=products.find(pp=>pp.id===l.product_id);
@@ -479,19 +497,21 @@ function renderLog(){
   const batches=[];
   const batchMap={};
   ls.forEach(l=>{
-    const um=l.note?.match(/\[user:([^\]]+)\]/);const userName=um?um[1]:'';
+    const um=l.note?.match(/\[user:([^\]]+)\]/);
+    const userName=um?um[1]:'';
     const bm=l.note?.match(/\[batch:([^\]]+)\]/);
     const bid=bm?bm[1]:'single_'+l.id;
     if(!batchMap[bid]){
-      batchMap[bid]={id:bid,type:l.type,time:l.created_at,items:[],reverted:false,note:'',userName:''};
+      batchMap[bid]={id:bid,type:l.type,time:l.created_at,items:[],reverted:false,note:'',userName:'',logIds:[]};
       batches.push(batchMap[bid]);
     }
     const batch=batchMap[bid];
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
     batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity});
+    batch.logIds.push(l.id);
     if(l.note&&l.note.startsWith('[已回退]'))batch.reverted=true;
-    const cleanNote=l.note?.replace(/\[batch:[^\]]+\]\s*/,'').replace(/^\[已回退\]\s*/,'').trim();
+    const cleanNote=l.note?.replace(/\[user:[^\]]+\]\s*/,'').replace(/\[batch:[^\]]+\]\s*/,'').replace(/^\[已回退\]\s*/,'').trim();
     if(cleanNote&&!batch.note)batch.note=cleanNote;
     if(userName&&!batch.userName)batch.userName=userName;
   });
@@ -506,34 +526,31 @@ function renderLog(){
     else{typeLabel='⬇️出库';typeClass='log-out'}
 
     const userTag=b.userName?'<span style="display:inline-block;padding:2px 6px;background:#e0e7ff;border-radius:4px;font-size:10px;font-weight:600;color:var(--p);margin-left:6px">👤 '+esc(b.userName)+'</span>':'';
-    const itemsHtml=b.items.map(it=>{
+
+    const itemsHtml=b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:600">修正为 ${it.quantity}</span></div>`).join(''):b.items.map(it=>{
       const sign=isIn||isTf?'+':'-';
-      return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px">
-        <span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span>
-        <span style="font-weight:600">${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}</span>
-      </div>`;
+      return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:600">${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}</span></div>`;
     }).join('');
 
-    const batchLogIds=b.items.map(i=>i.logId);
-    const batchPids=b.items.map(i=>i.product?.id||'');
-    const batchRids=b.items.map(i=>i.region?.id||'');
-    const batchTypes=b.items.map(()=>b.type);
-    const batchQtys=b.items.map(i=>i.quantity);
+    const allLogIds=JSON.stringify(b.logIds);
+    const bid=b.id;
 
-    return`<div class="log-card ${b.reverted?'log-reverted':''}">
-      <div class="log-hd">
-        <span class="log-type ${typeClass}">${typeLabel} (${b.items.length}件)</span>
-        <span>${userTag}<span class="log-time" style="margin-left:4px">${fmtTime(b.time)}</span></span>
+    return`<div class="log-card-wrap">
+      <input type="checkbox" class="log-select" onchange="toggleLogSelect('${bid}',${allLogIds})" id="chk_${bid}" ${b.reverted?'disabled':''}>
+      <div class="log-card ${b.reverted?'log-reverted':''}">
+        <div class="log-hd">
+          <span>${userTag}<span class="log-type ${typeClass}" style="margin-left:0">${typeLabel} (${b.items.length}件)</span></span>
+          <span class="log-time">${fmtTime(b.time)}</span>
+        </div>
+        <div class="log-body">
+          ${itemsHtml}
+          ${b.note?'<div style="margin-top:4px;font-size:11px;color:var(--tl)">'+esc(b.note)+'</div>':''}
+        </div>
+        ${!b.reverted?`<button class="log-undo" onclick="undoBatch(${allLogIds},'${b.type}',${JSON.stringify(b.items.map(i=>i.product?.id||''))},${JSON.stringify(b.items.map(i=>i.region?.id||''))},${JSON.stringify(b.items.map(i=>i.quantity))})">↩️ 回退整批</button>`:''}
       </div>
-      <div class="log-body">
-        ${b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:600">修正为 ${it.quantity}</span></div>`).join(''):itemsHtml}
-        ${b.note?'<div style="margin-top:4px;font-size:11px;color:var(--tl)">'+esc(b.note.replace(/\[batch:[^\]]+\]\s*/,''))+'</div>':''}
-      </div>
-      ${!b.reverted?`<button class="log-undo" onclick="undoBatch(${JSON.stringify(batchLogIds).replace(/"/g,"'")},${JSON.stringify(batchPids).replace(/"/g,"'")},${JSON.stringify(batchRids).replace(/"/g,"'")},'${b.type}',${JSON.stringify(batchQtys)})">↩️ 回退整批操作</button>`:''}
     </div>`;
   }).join('');
 }
-
 function renderRegList(){
   const el=document.getElementById('regList');
   if(regions.length===0){el.innerHTML='<div class="empty-t" style="text-align:center;padding:16px;color:var(--tl)">暂无地区，请添加</div>';return}
@@ -833,7 +850,7 @@ function closeDone(){
 }
 
 // ===== UNDO =====
-async function undoBatch(logIds,pids,rids,type,qtys){
+async function undoBatch(logIds,type,pids,rids,qtys){
   showCo('确定回退整批操作？所有商品库存将恢复。',async()=>{
     try{
       for(let i=0;i<logIds.length;i++){
@@ -1199,6 +1216,53 @@ function checkSession(){
   return false;
 }
 
+
+
+// ===== LOG SELECTION =====
+function toggleLogSelect(bid,logIds){
+  const chk=document.getElementById('chk_'+bid);
+  if(chk.checked){
+    logIds.forEach(id=>selectedLogs.add(id));
+  }else{
+    logIds.forEach(id=>selectedLogs.delete(id));
+  }
+  updateSelectCount();
+}
+
+function toggleSelectAll(){
+  const checked=document.getElementById('logSelectAll').checked;
+  document.querySelectorAll('#logList .log-select:not(:disabled)').forEach(chk=>{
+    chk.checked=checked;
+  });
+  if(checked){
+    // Select all log IDs from all batches
+    logs.forEach(l=>{if(!l.note?.startsWith('[已回退]'))selectedLogs.add(l.id)});
+  }else{
+    selectedLogs.clear();
+  }
+  updateSelectCount();
+}
+
+function updateSelectCount(){
+  const el=document.getElementById('logSelectCount');
+  el.textContent=selectedLogs.size>0?`已选 ${selectedLogs.size} 条`:'';
+}
+
+async function deleteSelectedLogs(){
+  if(selectedLogs.size===0){toast('请先选择要删除的记录');return}
+  showCo(`确定删除选中的 ${selectedLogs.size} 条记录？此操作不可撤销。`,async()=>{
+    try{
+      for(const id of selectedLogs){
+        await api(`stock_logs?id=eq.${id}`,{method:'DELETE'});
+      }
+      logs=logs.filter(l=>!selectedLogs.has(l.id));
+      selectedLogs.clear();
+      closeCo();
+      renderLog();
+      toast('已删除 ✅');
+    }catch(e){toast('删除失败: '+e.message)}
+  });
+}
 
 // ===== INIT =====
 loadEmployees().then(()=>{checkSession()});
