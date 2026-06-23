@@ -144,6 +144,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;transition:transform .3s;white-space:nowrap}
 .tt.show{transform:translateX(-50%) translateY(0)}
 
+
+/* Smart paste */
+.paste-toggle{display:flex;gap:8px;margin-bottom:10px}
+.paste-btn{flex:1;padding:10px;border:2px dashed var(--pl);border-radius:12px;background:#f0f0ff;color:var(--p);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
+.paste-wrap{display:none;margin-bottom:10px}
+.paste-wrap.show{display:block}
+.paste-area{width:100%;height:120px;padding:10px;border:2px solid var(--bd);border-radius:12px;font-size:14px;outline:none;background:var(--bg);resize:none;font-family:inherit}
+.paste-area:focus{border-color:var(--pl)}
+.parse-result{margin-top:8px;font-size:12px;color:var(--tl)}
+.parse-ok{color:var(--s)}.parse-fail{color:var(--d)}
+
 /* Loading */
 .ld{display:flex;justify-content:center;padding:30px}
 .sp{width:28px;height:28px;border:3px solid var(--bd);border-top-color:var(--p);border-radius:50%;animation:sp .8s linear infinite}
@@ -193,6 +204,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <span class="arrow">→</span>
       <select class="fi" id="opToReg" style="flex:1" onchange="renderOpList()"></select>
     </div>
+  </div>
+  <div class="paste-toggle">
+    <div class="paste-btn" onclick="togglePaste()">📋 快速识别粘贴（粘贴文本自动识别商品）</div>
+  </div>
+  <div class="paste-wrap" id="pasteWrap">
+    <textarea class="paste-area" id="pasteArea" placeholder="粘贴你的文本记录，例如：
+可乐 10
+A4纸 x5
+矿泉水*20
+牛奶 6箱"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn bc" onclick="togglePaste()" style="flex:1">取消</button>
+      <button class="btn bp" onclick="parsePaste()" style="flex:1">🔍 识别</button>
+    </div>
+    <div class="parse-result" id="parseResult"></div>
   </div>
   <div class="sbar"><input id="opSearch" placeholder="搜索商品..." autocomplete="off" oninput="renderOpList()"></div>
   <div id="opList"></div>
@@ -825,6 +851,112 @@ function toast(m){const el=document.getElementById('toast');el.textContent=m;el.
 document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e.target===e.currentTarget)closeMo(m.id)})});
 document.getElementById('coMo').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCo()});
 document.getElementById('doneOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDone()});
+
+
+// ===== SMART PASTE =====
+function togglePaste(){
+  const wrap=document.getElementById('pasteWrap');
+  wrap.classList.toggle('show');
+  if(wrap.classList.contains('show')){
+    document.getElementById('pasteArea').value='';
+    document.getElementById('parseResult').innerHTML='';
+    document.getElementById('pasteArea').focus();
+  }
+}
+
+function parsePaste(){
+  const text=document.getElementById('pasteArea').value.trim();
+  if(!text){toast('请粘贴文本内容');return}
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  const matched=[];
+  const unmatched=[];
+
+  lines.forEach(line=>{
+    // Try multiple formats:
+    // "可乐 10"  "可乐x10"  "可乐*10"  "可乐 x 10"  "10 可乐"  "可乐 10个"  "可乐 10箱"
+    let name='',qty=0;
+
+    // Pattern 1: name [x|*|×] number  (e.g., "可乐x10", "A4纸*5")
+    let m=line.match(/^(.+?)[\s]*[xX*×][\s]*(\d+)/);
+    if(m){name=m[1].trim();qty=parseInt(m[2]);}
+
+    // Pattern 2: name number  (e.g., "可乐 10", "矿泉水 20瓶")
+    if(!name){
+      m=line.match(/^(.+?)\s+(\d+)[^\d]*$/);
+      if(m){name=m[1].trim();qty=parseInt(m[2]);}
+    }
+
+    // Pattern 3: number name  (e.g., "10 可乐", "5箱A4纸")
+    if(!name){
+      m=line.match(/^(\d+)[^\d]*\s+(.+)$/);
+      if(m){qty=parseInt(m[1]);name=m[2].trim();}
+    }
+
+    // Pattern 4: just name (quantity defaults to 1)
+    if(!name){
+      name=line.replace(/[\s]+$/,'').trim();
+      qty=0;
+    }
+
+    if(name){
+      // Match against product database (fuzzy match)
+      const lc=name.toLowerCase();
+      let best=null,bestScore=0;
+      products.forEach(p=>{
+        const pn=p.name.toLowerCase();
+        // Exact match
+        if(pn===lc){best=p;bestScore=100;return;}
+        // Contains match
+        if(pn.includes(lc)||lc.includes(pn)){
+          const score=Math.min(lc.length,pn.length)/Math.max(lc.length,pn.length)*80;
+          if(score>bestScore){best=p;bestScore=score;}
+        }
+      });
+      if(best&&bestScore>=40){
+        matched.push({product:best,qty,name});
+      }else{
+        unmatched.push({name,qty});
+      }
+    }
+  });
+
+  // Fill opPicks with matched items
+  matched.forEach(m=>{
+    if(m.qty>0)opPicks[m.product.id]=m.qty;
+  });
+
+  // Show results
+  const el=document.getElementById('parseResult');
+  let html='';
+  if(matched.length>0){
+    html+=`<div class="parse-ok">✅ 识别到 ${matched.length} 个商品：</div>`;
+    matched.forEach(m=>{
+      html+=`<div style="padding:2px 0">· ${esc(m.product.name)} → ${m.qty>0?m.qty+' '+esc(m.product.unit||'个'):'未识别数量'}</div>`;
+    });
+  }
+  if(unmatched.length>0){
+    html+=`<div class="parse-fail" style="margin-top:6px">⚠️ 未匹配到 ${unmatched.length} 个：</div>`;
+    unmatched.forEach(u=>{
+      html+=`<div style="padding:2px 0">· ${esc(u.name)} ${u.qty>0?'('+u.qty+')':''}</div>`;
+    });
+  }
+  if(matched.length===0&&unmatched.length===0){
+    html='<div class="parse-fail">未能识别任何内容，请检查格式</div>';
+  }
+  el.innerHTML=html;
+
+  // Update the list
+  renderOpList();
+
+  // Auto close paste area after successful parse
+  if(matched.length>0){
+    setTimeout(()=>{
+      document.getElementById('pasteWrap').classList.remove('show');
+      toast(`已识别 ${matched.length} 个商品，请核对数量`);
+    },1500);
+  }
+}
+
 
 // ===== INIT =====
 loadAll();
