@@ -157,12 +157,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="btn bp" onclick="addRegion()" style="flex:none;width:auto;padding:11px 20px">添加</button>
   </div>
   <div style="margin-top:24px;padding:14px;background:var(--card);border-radius:12px;box-shadow:var(--sh)">
+    <h3 style="font-size:15px;margin-bottom:12px">💾 数据备份</h3>
+    <button class="btn bp" onclick="exportCSV()" style="width:100%;margin-bottom:8px">📥 导出库存数据（CSV）</button>
+    <button class="btn" onclick="exportLogs()" style="width:100%;background:#e0e7ff;color:var(--p)">📋 导出操作记录（CSV）</button>
+  </div>
+  <div style="margin-top:16px;padding:14px;background:var(--card);border-radius:12px;box-shadow:var(--sh)">
     <div style="font-size:13px;color:var(--tl);line-height:1.6">
       <b>使用说明</b><br>
       • 库存页：选择地区查看库存，点击商品可入库/出库<br>
       • 商品页：管理商品目录（添加/编辑/删除）<br>
       • 记录页：查看所有操作记录，可回退误操作<br>
-      • 设置页：管理地区
+      • 设置页：管理地区、导出备份
     </div>
   </div>
 </div>
@@ -593,6 +598,41 @@ document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e
 document.getElementById('coMo').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCo()});
 
 // ===== INIT =====
+// ===== EXPORT =====
+function exportCSV(){
+  const rows=[['商品名称','地区','数量','单位','分类','备注']];
+  inv.forEach(i=>{
+    const p=products.find(pp=>pp.id===i.product_id);
+    const r=regions.find(rr=>rr.id===i.region_id);
+    rows.push([p?p.name:'未知',r?r.name:'未知',i.quantity,p?p.unit:'个',p?p.category:'',p?p.notes:'']);
+  });
+  downloadCSV(rows,'库存备份_'+fmtDate()+'.csv');
+  toast('库存数据已导出 ✅');
+}
+
+function exportLogs(){
+  const rows=[['时间','类型','商品','地区','数量','备注']];
+  logs.forEach(l=>{
+    const p=products.find(pp=>pp.id===l.product_id);
+    const r=regions.find(rr=>rr.id===l.region_id);
+    rows.push([fmtTime(l.created_at),l.type==='in'?'入库':'出库',p?p.name:'未知',r?r.name:'未知',l.quantity,l.note||'']);
+  });
+  downloadCSV(rows,'操作记录_'+fmtDate()+'.csv');
+  toast('操作记录已导出 ✅');
+}
+
+function downloadCSV(rows,filename){
+  const bom='\uFEFF';
+  const csv=bom+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+}
+
+function fmtDate(){const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
+
 loadAll();
 </script>
 </body>
