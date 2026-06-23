@@ -288,6 +288,13 @@ A4纸 x5
     <input class="fi" id="newRegName" placeholder="新地区名称" style="flex:1">
     <button class="btn bp" onclick="addRegion()" style="flex:none;width:auto;padding:11px 20px">添加</button>
   </div>
+  <h3 style="margin-bottom:12px;font-size:15px;margin-top:24px">👥 员工管理</h3>
+  <div id="empList"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <input class="fi" id="newEmpName" placeholder="员工姓名" style="flex:1">
+    <input class="fi" id="newEmpPin" placeholder="PIN码" style="flex:none;width:80px" maxlength="8" inputmode="numeric">
+    <button class="btn bp" onclick="addEmployee()" style="flex:none;width:auto;padding:11px 16px">添加</button>
+  </div>
   <div style="margin-top:24px;padding:14px;background:var(--card);border-radius:12px;box-shadow:var(--sh)">
     <h3 style="font-size:15px;margin-bottom:12px">💾 数据备份</h3>
     <button class="btn bp" onclick="exportCSV()" style="width:100%;margin-bottom:8px">📥 导出库存数据（CSV）</button>
@@ -299,7 +306,7 @@ A4纸 x5
       • 首页：点击「入库」「出库」「调货」按钮操作库存<br>
       • 商品页：管理商品目录（添加/编辑/删除）<br>
       • 记录页：查看所有操作记录，可回退误操作<br>
-      • 设置页：管理地区、导出备份
+      • 设置页：管理地区、管理员工、导出备份
     </div>
   </div>
 </div>
