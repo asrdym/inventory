@@ -5,710 +5,595 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>库存管理</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --primary: #4f46e5;
-  --primary-light: #818cf8;
-  --danger: #ef4444;
-  --success: #22c55e;
-  --bg: #f8fafc;
-  --card: #ffffff;
-  --text: #1e293b;
-  --text-light: #64748b;
-  --border: #e2e8f0;
-  --shadow: 0 1px 3px rgba(0,0,0,0.1);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
-}
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  padding-bottom: 80px;
-  -webkit-tap-highlight-color: transparent;
-}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4f46e5;--pl:#818cf8;--d:#ef4444;--s:#22c55e;--w:#f59e0b;--bg:#f8fafc;--card:#fff;--t:#1e293b;--tl:#64748b;--bd:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.1);--shl:0 4px 12px rgba(0,0,0,.15)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;padding-bottom:70px;-webkit-tap-highlight-color:transparent}
 
-/* Header */
-.header {
-  background: var(--primary);
-  color: white;
-  padding: 16px 20px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: var(--shadow-lg);
-}
-.header h1 { font-size: 20px; font-weight: 700; }
-.header-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.hdr{background:var(--p);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:100;box-shadow:var(--shl)}
+.hdr h1{font-size:18px;font-weight:700}
 
-/* Search & Filter */
-.search-bar {
-  padding: 12px 16px;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 56px;
-  z-index: 99;
-}
-.search-input {
-  width: 100%;
-  padding: 10px 14px 10px 38px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  font-size: 15px;
-  outline: none;
-  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center;
-  transition: border-color 0.2s;
-}
-.search-input:focus { border-color: var(--primary-light); }
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:50px;z-index:99}
+.tab{flex:1;padding:10px 0;text-align:center;font-size:13px;font-weight:600;color:var(--tl);border-bottom:2px solid transparent;cursor:pointer}
+.tab.active{color:var(--p);border-bottom-color:var(--p)}
 
-.filter-row {
-  display: flex;
-  gap: 8px;
-  padding: 10px 16px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.filter-row::-webkit-scrollbar { display: none; }
-.filter-chip {
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  border: 1.5px solid var(--border);
-  background: var(--card);
-  color: var(--text-light);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.filter-chip.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
+.section{display:none;padding:12px 14px}
+.section.show{display:block}
+
+/* Region selector */
+.reg-sel{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
+.reg-sel::-webkit-scrollbar{display:none}
+.reg-chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--bd);background:var(--card);color:var(--tl);cursor:pointer;transition:all .2s;white-space:nowrap}
+.reg-chip.active{background:var(--p);color:#fff;border-color:var(--p)}
+.reg-chip.add{border-style:dashed;color:var(--p);border-color:var(--pl)}
 
 /* Stats */
-.stats-row {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-}
-.stat-card {
-  flex: 1;
-  background: var(--card);
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  box-shadow: var(--shadow);
-}
-.stat-num { font-size: 22px; font-weight: 700; color: var(--primary); }
-.stat-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.stats{display:flex;gap:8px;margin-bottom:12px}
+.st{flex:1;background:var(--card);border-radius:12px;padding:10px;text-align:center;box-shadow:var(--sh)}
+.st-n{font-size:20px;font-weight:700;color:var(--p)}
+.st-l{font-size:10px;color:var(--tl);margin-top:2px}
 
-/* Items */
-.items-list { padding: 0 16px 16px; }
-.item-card {
-  background: var(--card);
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: transform 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.item-card:active { transform: scale(0.98); }
-.item-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-.item-info { flex: 1; min-width: 0; }
-.item-name {
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.item-meta {
-  font-size: 12px;
-  color: var(--text-light);
-  margin-top: 2px;
-}
-.item-qty {
-  text-align: right;
-  flex-shrink: 0;
-}
-.qty-num { font-size: 20px; font-weight: 700; }
-.qty-unit { font-size: 11px; color: var(--text-light); }
-.qty-low { color: var(--danger); }
-.qty-ok { color: var(--success); }
+/* Search */
+.sbar{margin-bottom:12px}
+.sbar input{width:100%;padding:10px 12px 10px 36px;border:2px solid var(--bd);border-radius:12px;font-size:14px;outline:none;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 10px center}
+.sbar input:focus{border-color:var(--pl)}
+
+/* Cards */
+.card{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.card-info{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta{font-size:11px;color:var(--tl);margin-top:1px}
+.card-qty{text-align:right;flex-shrink:0}
+.qn{font-size:18px;font-weight:700}
+.qu{font-size:10px;color:var(--tl)}
+.ql{color:var(--d)}.qk{color:var(--s)}
+
+.card-btns{display:flex;gap:4px;margin-top:6px}
+.ab{padding:5px 10px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer}
+.ab-in{background:#dcfce7;color:#166534}.ab-out{background:#fee2e2;color:#991b1b}
+.ab:active{opacity:.7}
 
 /* FAB */
-.fab {
-  position: fixed;
-  bottom: 24px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  font-size: 28px;
-  box-shadow: var(--shadow-lg);
-  cursor: pointer;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s;
-}
-.fab:active { transform: scale(0.9); }
+.fab{position:fixed;bottom:20px;right:16px;width:52px;height:52px;border-radius:14px;background:var(--p);color:#fff;border:none;font-size:26px;box-shadow:var(--shl);cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.9)}
 
 /* Modal */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 300;
-  align-items: flex-end;
-  justify-content: center;
-  animation: fadeIn 0.2s;
-}
-.modal-overlay.show { display: flex; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end;justify-content:center}
+.mo.show{display:flex}
+.md{background:var(--card);width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:18px;max-height:90vh;overflow-y:auto;animation:su .3s ease-out}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mt{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--tl);margin-bottom:5px}
+.fi{width:100%;padding:11px 12px;border:2px solid var(--bd);border-radius:10px;font-size:15px;outline:none;background:var(--bg)}
+.fi:focus{border-color:var(--pl)}
+.fr{display:flex;gap:8px}.fr .fg{flex:1}
+.br{display:flex;gap:8px;margin-top:16px}
+.btn{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer}
+.btn:active{opacity:.8}
+.bp{background:var(--p);color:#fff}.bc{background:var(--bg);color:var(--tl)}.bd{background:var(--d);color:#fff}
 
-.modal {
-  background: var(--card);
-  width: 100%;
-  max-width: 480px;
-  border-radius: 20px 20px 0 0;
-  padding: 20px;
-  animation: slideUp 0.3s ease-out;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-.modal-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  text-align: center;
-}
-.form-group { margin-bottom: 16px; }
-.form-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-light);
-  margin-bottom: 6px;
-}
-.form-input {
-  width: 100%;
-  padding: 12px 14px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s;
-  background: var(--bg);
-}
-.form-input:focus { border-color: var(--primary-light); }
-.form-row { display: flex; gap: 10px; }
-.form-row .form-group { flex: 1; }
+/* Log */
+.log-card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:var(--sh)}
+.log-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.log-type{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px}
+.log-in{background:#dcfce7;color:#166534}.log-out{background:#fee2e2;color:#991b1b}
+.log-time{font-size:11px;color:var(--tl)}
+.log-body{font-size:13px;line-height:1.6}
+.log-body b{font-weight:600}
+.log-undo{margin-top:8px;padding:5px 12px;border-radius:8px;border:1.5px solid var(--bd);background:var(--card);font-size:12px;color:var(--p);cursor:pointer;font-weight:600}
+.log-undo:active{opacity:.7}
+.log-reverted{opacity:.5;text-decoration:line-through}
 
-.btn-row { display: flex; gap: 10px; margin-top: 20px; }
-.btn {
-  flex: 1;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.15s;
-}
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--primary); color: white; }
-.btn-cancel { background: var(--bg); color: var(--text-light); }
-.btn-danger { background: var(--danger); color: white; }
-.btn-delete-only { margin-top: 10px; }
-
-/* Swipe actions */
-.item-actions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.act-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.act-edit { background: #e0e7ff; color: var(--primary); }
-.act-del { background: #fee2e2; color: var(--danger); }
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-light);
-}
-.empty-icon { font-size: 48px; margin-bottom: 12px; }
-.empty-text { font-size: 15px; }
-
-/* Loading */
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-}
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+/* Confirm */
+.co{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center}
+.co.show{display:flex}
+.cb{background:var(--card);border-radius:16px;padding:20px;width:85%;max-width:300px;text-align:center}
+.ct{font-size:15px;margin-bottom:16px;line-height:1.5}
 
 /* Toast */
-.toast {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100px);
-  background: var(--text);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  z-index: 999;
-  transition: transform 0.3s ease-out;
-  white-space: nowrap;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
+.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;transition:transform .3s;white-space:nowrap}
+.tt.show{transform:translateX(-50%) translateY(0)}
 
-/* Confirm dialog */
-.confirm-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 400;
-  align-items: center;
-  justify-content: center;
-}
-.confirm-overlay.show { display: flex; }
-.confirm-box {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 24px;
-  width: 85%;
-  max-width: 320px;
-  text-align: center;
-}
-.confirm-text { font-size: 16px; margin-bottom: 20px; line-height: 1.5; }
-.confirm-btns { display: flex; gap: 10px; }
-.confirm-btns .btn { padding: 12px; }
+/* Region manage */
+.rm-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px}
+.rm-name{font-size:14px;font-weight:600}
+.rm-del{width:30px;height:30px;border-radius:8px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer}
 
-/* Quick adjust */
-.adjust-btns {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-.adj-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: var(--card);
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text);
-}
-.adj-btn:active { background: var(--bg); }
+/* Empty */
+.empty{text-align:center;padding:40px 16px;color:var(--tl)}
+.empty-icon{font-size:40px;margin-bottom:8px}
+.empty-t{font-size:14px}
+
+/* Loading */
+.ld{display:flex;justify-content:center;padding:30px}
+.sp{width:28px;height:28px;border:3px solid var(--bd);border-top-color:var(--p);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>📦 库存管理</h1>
-  <div class="header-sub" id="headerSub">加载中...</div>
+<div class="hdr"><h1>📦 库存管理</h1></div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="inv">库存</div>
+  <div class="tab" data-tab="prod">商品</div>
+  <div class="tab" data-tab="log">记录</div>
+  <div class="tab" data-tab="set">设置</div>
 </div>
 
-<div class="search-bar">
-  <input class="search-input" id="searchInput" placeholder="搜索商品名称..." autocomplete="off">
-</div>
-
-<div class="filter-row" id="filterRow">
-  <div class="filter-chip active" data-cat="">全部</div>
-</div>
-
-<div class="stats-row">
-  <div class="stat-card">
-    <div class="stat-num" id="statTotal">-</div>
-    <div class="stat-label">商品种类</div>
+<!-- ===== 库存 ===== -->
+<div class="section show" id="sec-inv">
+  <div class="reg-sel" id="regSel"></div>
+  <div class="stats">
+    <div class="st"><div class="st-n" id="sTotal">-</div><div class="st-l">商品种类</div></div>
+    <div class="st"><div class="st-n" id="sQty">-</div><div class="st-l">总数量</div></div>
+    <div class="st"><div class="st-n" id="sLow">-</div><div class="st-l">库存不足</div></div>
   </div>
-  <div class="stat-card">
-    <div class="stat-num" id="statQty">-</div>
-    <div class="stat-label">总数量</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-num" id="statLow">-</div>
-    <div class="stat-label">库存不足</div>
-  </div>
+  <div class="sbar"><input id="sSearch" placeholder="搜索商品..." autocomplete="off"></div>
+  <div id="invList"><div class="ld"><div class="sp"></div></div></div>
+  <button class="fab" onclick="openStockModal()">+</button>
 </div>
 
-<div class="items-list" id="itemsList">
-  <div class="loading"><div class="spinner"></div></div>
+<!-- ===== 商品 ===== -->
+<div class="section" id="sec-prod">
+  <div class="sbar"><input id="pSearch" placeholder="搜索商品..." autocomplete="off"></div>
+  <div id="prodList"></div>
+  <button class="fab" onclick="openProdModal()">+</button>
 </div>
 
-<button class="fab" id="fabAdd" onclick="openModal()">+</button>
+<!-- ===== 记录 ===== -->
+<div class="section" id="sec-log">
+  <div class="sbar"><input id="lSearch" placeholder="搜索记录..." autocomplete="off"></div>
+  <div id="logList"></div>
+</div>
 
-<!-- Add/Edit Modal -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-title" id="modalTitle">添加商品</div>
-    <input type="hidden" id="editId">
-    <div class="form-group">
-      <label class="form-label">商品名称 *</label>
-      <input class="form-input" id="inputName" placeholder="例：可乐、A4纸">
+<!-- ===== 设置 ===== -->
+<div class="section" id="sec-set">
+  <h3 style="margin-bottom:12px;font-size:15px">🗂️ 地区管理</h3>
+  <div id="regList"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <input class="fi" id="newRegName" placeholder="新地区名称" style="flex:1">
+    <button class="btn bp" onclick="addRegion()" style="flex:none;width:auto;padding:11px 20px">添加</button>
+  </div>
+  <div style="margin-top:24px;padding:14px;background:var(--card);border-radius:12px;box-shadow:var(--sh)">
+    <div style="font-size:13px;color:var(--tl);line-height:1.6">
+      <b>使用说明</b><br>
+      • 库存页：选择地区查看库存，点击商品可入库/出库<br>
+      • 商品页：管理商品目录（添加/编辑/删除）<br>
+      • 记录页：查看所有操作记录，可回退误操作<br>
+      • 设置页：管理地区
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">数量</label>
-        <input class="form-input" id="inputQty" type="number" value="0" min="0">
+  </div>
+</div>
+
+<!-- Stock Modal -->
+<div class="mo" id="stockMo">
+  <div class="md">
+    <div class="mt" id="stockTitle">入库 / 出库</div>
+    <div class="fg">
+      <label class="fl">选择商品 *</label>
+      <select class="fi" id="stProd"></select>
+    </div>
+    <div class="fg">
+      <label class="fl">选择地区 *</label>
+      <select class="fi" id="stReg"></select>
+    </div>
+    <div class="fr">
+      <div class="fg">
+        <label class="fl">类型</label>
+        <select class="fi" id="stType">
+          <option value="in">⬆️ 入库</option>
+          <option value="out">⬇️ 出库</option>
+        </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">单位</label>
-        <input class="form-input" id="inputUnit" placeholder="个/箱/瓶" value="个">
+      <div class="fg">
+        <label class="fl">数量</label>
+        <input class="fi" id="stQty" type="number" value="1" min="1">
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">分类</label>
-      <input class="form-input" id="inputCategory" placeholder="例：饮料、办公用品">
+    <div class="fg">
+      <label class="fl">备注（可选）</label>
+      <input class="fi" id="stNote" placeholder="例：销售单号、客户名">
     </div>
-    <div class="form-group">
-      <label class="form-label">备注</label>
-      <input class="form-input" id="inputNotes" placeholder="可选">
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveItem()">保存</button>
-    </div>
-    <button class="btn btn-danger btn-delete-only" id="btnDelete" style="display:none" onclick="confirmDelete()">🗑️ 删除此商品</button>
-  </div>
-</div>
-
-<!-- Confirm Dialog -->
-<div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <div class="confirm-text" id="confirmText">确定删除吗？</div>
-    <div class="confirm-btns">
-      <button class="btn btn-cancel" onclick="closeConfirm()">取消</button>
-      <button class="btn btn-danger" id="confirmOk">确定</button>
+    <div class="br">
+      <button class="btn bc" onclick="closeMo('stockMo')">取消</button>
+      <button class="btn bp" onclick="doStock()">确认</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Product Modal -->
+<div class="mo" id="prodMo">
+  <div class="md">
+    <div class="mt" id="prodTitle">添加商品</div>
+    <input type="hidden" id="pEditId">
+    <div class="fg">
+      <label class="fl">商品名称 *</label>
+      <input class="fi" id="pName" placeholder="例：可乐、A4纸">
+    </div>
+    <div class="fr">
+      <div class="fg">
+        <label class="fl">单位</label>
+        <input class="fi" id="pUnit" value="个" placeholder="个/箱/瓶">
+      </div>
+      <div class="fg">
+        <label class="fl">分类</label>
+        <input class="fi" id="pCat" placeholder="例：饮料">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">备注</label>
+      <input class="fi" id="pNotes" placeholder="可选">
+    </div>
+    <div class="br">
+      <button class="btn bc" onclick="closeMo('prodMo')">取消</button>
+      <button class="btn bp" onclick="saveProd()">保存</button>
+    </div>
+    <button class="btn bd" id="pDelBtn" style="display:none;margin-top:10px" onclick="confirmDelProd()">🗑️ 删除此商品</button>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="co" id="coMo">
+  <div class="cb">
+    <div class="ct" id="coText">确定吗？</div>
+    <div class="br">
+      <button class="btn bc" onclick="closeCo()">取消</button>
+      <button class="btn bd" id="coOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="tt" id="toast"></div>
 
 <script>
-// ===== CONFIG =====
-const SUPABASE_URL = 'https://dtjprxqxlybqrzwmvviq.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_X58fb-T-0_cZANnv5FVuCQ_sW3GyEfi';
-const TABLE = 'inventory';
+const U='https://dtjprxqxlybqrzwmvviq.supabase.co';
+const K='sb_publishable_X58fb-T-0_cZANnv5FVuCQ_sW3GyEfi';
+const H={'apikey':K,'Authorization':`Bearer ${K}`,'Content-Type':'application/json','Prefer':'return=representation'};
 
-// ===== STATE =====
-let items = [];
-let currentFilter = '';
-let searchQuery = '';
+let regions=[],products=[],inv=[],logs=[];
+let curReg='',curTab='inv',sq='';
 
 // ===== API =====
-async function api(path, opts = {}) {
-  const url = `${SUPABASE_URL}/rest/v1/${path}`;
-  const headers = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation',
-    ...opts.headers
-  };
-  const res = await fetch(url, { ...opts, headers });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err);
-  }
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
-}
+async function api(p,o={}){const r=await fetch(U+'/rest/v1/'+p,{...o,headers:{...H,...o.headers}});if(!r.ok)throw new Error(await r.text());const t=await r.text();return t?JSON.parse(t):null}
 
-async function fetchItems() {
-  try {
-    items = await api(`${TABLE}?order=created_at.desc`);
-    render();
-    document.getElementById('headerSub').textContent = `共 ${items.length} 种商品`;
-  } catch (e) {
+async function loadAll(){
+  try{
+    [regions,products,inv,logs]=await Promise.all([
+      api('regions?order=name'),
+      api('products?order=name'),
+      api('inventory'),
+      api('stock_logs?order=created_at.desc&limit=500')
+    ]);
+    if(!curReg&&regions.length)curReg=regions[0].id;
+    renderAll();
+  }catch(e){
     console.error(e);
-    document.getElementById('headerSub').textContent = '加载失败，请检查配置';
-    document.getElementById('itemsList').innerHTML =
-      '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">无法连接数据库<br>请确认已执行建表SQL</div></div>';
+    toast('加载失败，请检查数据库');
   }
-}
-
-async function createItem(data) {
-  return await api(TABLE, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  });
-}
-
-async function updateItem(id, data) {
-  return await api(`${TABLE}?id=eq.${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(data)
-  });
-}
-
-async function deleteItem(id) {
-  return await api(`${TABLE}?id=eq.${id}`, {
-    method: 'DELETE'
-  });
 }
 
 // ===== RENDER =====
-function render() {
-  const list = document.getElementById('itemsList');
-  const filtered = items.filter(item => {
-    if (currentFilter && item.category !== currentFilter) return false;
-    if (searchQuery && !item.name.toLowerCase().includes(searchQuery) &&
-        !(item.category || '').toLowerCase().includes(searchQuery)) return false;
+function renderAll(){renderRegSel();renderInv();renderProd();renderLog();renderRegList()}
+
+function renderRegSel(){
+  const el=document.getElementById('regSel');
+  el.innerHTML=regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selReg('${r.id}')">${esc(r.name)}</div>`).join('');
+}
+
+function selReg(id){curReg=id;renderInv()}
+
+function renderInv(){
+  const el=document.getElementById('invList');
+  const items=inv.filter(i=>i.region_id===curReg).map(i=>{
+    const p=products.find(pp=>pp.id===i.product_id);
+    return{...i,prod:p};
+  }).filter(i=>i.prod).filter(i=>{
+    if(sq&&!i.prod.name.toLowerCase().includes(sq)&&!(i.prod.category||'').toLowerCase().includes(sq))return false;
     return true;
-  });
+  }).sort((a,b)=>a.prod.name.localeCompare(b.prod.name));
 
-  // Stats
-  document.getElementById('statTotal').textContent = items.length;
-  document.getElementById('statQty').textContent = items.reduce((s, i) => s + (i.quantity || 0), 0);
-  document.getElementById('statLow').textContent = items.filter(i => i.quantity <= 5).length;
+  document.getElementById('sTotal').textContent=items.length;
+  document.getElementById('sQty').textContent=items.reduce((s,i)=>s+i.quantity,0);
+  document.getElementById('sLow').textContent=items.filter(i=>i.quantity<=5).length;
 
-  // Categories
-  const cats = [...new Set(items.map(i => i.category).filter(Boolean))];
-  const filterRow = document.getElementById('filterRow');
-  filterRow.innerHTML = `<div class="filter-chip ${currentFilter === '' ? 'active' : ''}" data-cat="">全部</div>` +
-    cats.map(c => `<div class="filter-chip ${currentFilter === c ? 'active' : ''}" data-cat="${c}">${c}</div>`).join('');
-  filterRow.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.onclick = () => {
-      currentFilter = chip.dataset.cat;
-      render();
-    };
-  });
+  if(!curReg){el.innerHTML='<div class="empty"><div class="empty-icon">🗂️</div><div class="empty-t">请先在设置中添加地区</div></div>';return}
+  if(items.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-t">该地区暂无库存<br>点击 + 添加</div></div>';return}
 
-  // Items
-  if (filtered.length === 0) {
-    list.innerHTML = items.length === 0
-      ? '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">还没有商品<br>点击右下角 + 添加</div></div>'
-      : '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">没有找到匹配的商品</div></div>';
-    return;
-  }
-
-  const colors = ['#e0e7ff','#fce7f3','#d1fae5','#fef3c7','#e0f2fe','#f3e8ff','#ffe4e6','#f0fdf4'];
-  const icons = ['📦','🏷️','📋','📌','🔖'];
-
-  list.innerHTML = filtered.map((item, i) => {
-    const color = colors[item.name.length % colors.length];
-    const icon = icons[item.name.length % icons.length];
-    const isLow = item.quantity <= 5;
-    return `
-      <div class="item-card" onclick="openModal('${item.id}')">
-        <div class="item-icon" style="background:${color}">${icon}</div>
-        <div class="item-info">
-          <div class="item-name">${esc(item.name)}</div>
-          <div class="item-meta">${item.category ? esc(item.category) + ' · ' : ''}${timeAgo(item.created_at)}</div>
-          <div class="adjust-btns">
-            <button class="adj-btn" onclick="event.stopPropagation();adjustQty('${item.id}',-1)">−</button>
-            <button class="adj-btn" onclick="event.stopPropagation();adjustQty('${item.id}',1)">+</button>
-          </div>
+  const colors=['#e0e7ff','#fce7f3','#d1fae5','#fef3c7','#e0f2fe','#f3e8ff'];
+  const icons=['📦','🏷️','📋','📌','🔖','📎'];
+  el.innerHTML=items.map((it,idx)=>{
+    const c=colors[idx%colors.length];const ic=icons[idx%icons.length];
+    const lo=it.quantity<=5;
+    return`<div class="card">
+      <div class="card-icon" style="background:${c}">${ic}</div>
+      <div class="card-info">
+        <div class="card-name">${esc(it.prod.name)}</div>
+        <div class="card-meta">${it.prod.category?esc(it.prod.category)+' · ':''}${esc(it.prod.unit||'个')}</div>
+        <div class="card-btns">
+          <button class="ab ab-in" onclick="event.stopPropagation();quickStock('${it.product_id}','${it.region_id}','in')">⬆️入库</button>
+          <button class="ab ab-out" onclick="event.stopPropagation();quickStock('${it.product_id}','${it.region_id}','out')">⬇️出库</button>
         </div>
-        <div class="item-qty">
-          <div class="qty-num ${isLow ? 'qty-low' : 'qty-ok'}">${item.quantity}</div>
-          <div class="qty-unit">${esc(item.unit || '个')}</div>
-        </div>
-      </div>`;
+      </div>
+      <div class="card-qty">
+        <div class="qn ${lo?'ql':'qk'}">${it.quantity}</div>
+        <div class="qu">${esc(it.prod.unit||'个')}</div>
+      </div>
+    </div>`;
   }).join('');
 }
 
-function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = s || '';
-  return d.innerHTML;
+function renderProd(){
+  const el=document.getElementById('prodList');
+  const ps=products.filter(p=>{
+    if(sq&&!p.name.toLowerCase().includes(sq))return false;
+    return true;
+  });
+  if(ps.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-t">暂无商品<br>点击 + 添加</div></div>';return}
+  el.innerHTML=ps.map(p=>{
+    const total=inv.filter(i=>i.product_id===p.id).reduce((s,i)=>s+i.quantity,0);
+    return`<div class="card" onclick="openProdModal('${p.id}')">
+      <div class="card-info">
+        <div class="card-name">${esc(p.name)}</div>
+        <div class="card-meta">${p.category?esc(p.category)+' · ':''}${esc(p.unit||'个')}</div>
+      </div>
+      <div class="card-qty">
+        <div class="qn" style="color:var(--tl);font-size:14px">各地区共 ${total}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function timeAgo(ts) {
-  if (!ts) return '';
-  const diff = Date.now() - new Date(ts).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '刚刚';
-  if (mins < 60) return mins + '分钟前';
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return hrs + '小时前';
-  const days = Math.floor(hrs / 24);
-  return days + '天前';
-}
-
-// ===== MODAL =====
-function openModal(id) {
-  const overlay = document.getElementById('modalOverlay');
-  const title = document.getElementById('modalTitle');
-  const btnDel = document.getElementById('btnDelete');
-
-  if (id) {
-    const item = items.find(i => i.id === id);
-    if (!item) return;
-    title.textContent = '编辑商品';
-    document.getElementById('editId').value = id;
-    document.getElementById('inputName').value = item.name;
-    document.getElementById('inputQty').value = item.quantity;
-    document.getElementById('inputUnit').value = item.unit || '个';
-    document.getElementById('inputCategory').value = item.category || '';
-    document.getElementById('inputNotes').value = item.notes || '';
-    btnDel.style.display = 'block';
-  } else {
-    title.textContent = '添加商品';
-    document.getElementById('editId').value = '';
-    document.getElementById('inputName').value = '';
-    document.getElementById('inputQty').value = '0';
-    document.getElementById('inputUnit').value = '个';
-    document.getElementById('inputCategory').value = '';
-    document.getElementById('inputNotes').value = '';
-    btnDel.style.display = 'none';
-  }
-  overlay.classList.add('show');
-  setTimeout(() => document.getElementById('inputName').focus(), 300);
-}
-
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('show');
-}
-
-async function saveItem() {
-  const name = document.getElementById('inputName').value.trim();
-  if (!name) { toast('请输入商品名称'); return; }
-
-  const data = {
-    name,
-    quantity: parseInt(document.getElementById('inputQty').value) || 0,
-    unit: document.getElementById('inputUnit').value.trim() || '个',
-    category: document.getElementById('inputCategory').value.trim(),
-    notes: document.getElementById('inputNotes').value.trim()
-  };
-
-  try {
-    const editId = document.getElementById('editId').value;
-    if (editId) {
-      await updateItem(editId, data);
-      toast('已更新 ✅');
-    } else {
-      await createItem(data);
-      toast('已添加 ✅');
+function renderLog(){
+  const el=document.getElementById('logList');
+  const ls=logs.filter(l=>{
+    if(sq){
+      const p=products.find(pp=>pp.id===l.product_id);
+      const r=regions.find(rr=>rr.id===l.region_id);
+      const txt=(p?p.name:'')+(r?r.name:'')+(l.note||'');
+      if(!txt.toLowerCase().includes(sq))return false;
     }
-    closeModal();
-    fetchItems();
-  } catch (e) {
-    toast('保存失败: ' + e.message);
-  }
+    return true;
+  });
+  if(ls.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-t">暂无记录</div></div>';return}
+  el.innerHTML=ls.map(l=>{
+    const p=products.find(pp=>pp.id===l.product_id);
+    const r=regions.find(rr=>rr.id===l.region_id);
+    const isIn=l.type==='in';
+    const reverted=l.note&&l.note.startsWith('[已回退]');
+    return`<div class="log-card ${reverted?'log-reverted':''}">
+      <div class="log-hd">
+        <span class="log-type ${isIn?'log-in':'log-out'}">${isIn?'⬆️入库':'⬇️出库'}</span>
+        <span class="log-time">${fmtTime(l.created_at)}</span>
+      </div>
+      <div class="log-body">
+        <b>${esc(p?p.name:'未知商品')}</b> · ${esc(r?r.name:'未知地区')}<br>
+        数量：<b>${isIn?'+':'-'}${l.quantity}</b> ${esc(p?p.unit:'个')}
+        ${l.note?'<br>备注：'+esc(l.note):''}
+      </div>
+      ${!reverted?`<button class="log-undo" onclick="undoLog('${l.id}','${l.product_id}','${l.region_id}','${l.type}',${l.quantity})">↩️ 回退此操作</button>`:''}
+    </div>`;
+  }).join('');
 }
 
-async function adjustQty(id, delta) {
-  const item = items.find(i => i.id === id);
-  if (!item) return;
-  const newQty = Math.max(0, item.quantity + delta);
-  try {
-    await updateItem(id, { quantity: newQty });
-    item.quantity = newQty;
-    render();
-  } catch (e) {
-    toast('更新失败');
-  }
+function renderRegList(){
+  const el=document.getElementById('regList');
+  if(regions.length===0){el.innerHTML='<div class="empty-t" style="text-align:center;padding:16px;color:var(--tl)">暂无地区，请添加</div>';return}
+  el.innerHTML=regions.map(r=>{
+    const cnt=inv.filter(i=>i.region_id===r.id).length;
+    return`<div class="rm-item">
+      <div><span class="rm-name">${esc(r.name)}</span><span style="font-size:11px;color:var(--tl);margin-left:8px">${cnt} 种商品</span></div>
+      <button class="rm-del" onclick="delRegion('${r.id}','${esc(r.name)}')">✕</button>
+    </div>`;
+  }).join('');
 }
 
-// ===== DELETE =====
-let pendingDeleteId = null;
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function fmtTime(ts){if(!ts)return'';const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`}
 
-function confirmDelete() {
-  pendingDeleteId = document.getElementById('editId').value;
-  document.getElementById('confirmText').textContent = '确定删除这个商品吗？';
-  document.getElementById('confirmOverlay').classList.add('show');
-  document.getElementById('confirmOk').onclick = doDelete;
-}
-
-async function doDelete() {
-  if (!pendingDeleteId) return;
-  try {
-    await deleteItem(pendingDeleteId);
-    closeConfirm();
-    closeModal();
-    toast('已删除 🗑️');
-    fetchItems();
-  } catch (e) {
-    toast('删除失败');
-  }
-}
-
-function closeConfirm() {
-  document.getElementById('confirmOverlay').classList.remove('show');
-  pendingDeleteId = null;
-}
-
-// ===== TOAST =====
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2000);
-}
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(tt=>tt.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
+    document.getElementById('sec-'+t.dataset.tab).classList.add('show');
+    curTab=t.dataset.tab;
+    sq='';
+    if(curTab==='inv')renderInv();
+    if(curTab==='prod')renderProd();
+    if(curTab==='log')renderLog();
+  };
+});
 
 // ===== SEARCH =====
-document.getElementById('searchInput').addEventListener('input', e => {
-  searchQuery = e.target.value.toLowerCase();
-  render();
-});
+document.getElementById('sSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderInv()};
+document.getElementById('pSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderProd()};
+document.getElementById('lSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderLog()};
 
-// Close modals on overlay click
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeModal();
-});
-document.getElementById('confirmOverlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeConfirm();
-});
+// ===== STOCK =====
+function openStockModal(){
+  document.getElementById('stProd').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  document.getElementById('stReg').innerHTML=regions.map(r=>`<option value="${r.id}" ${r.id===curReg?'selected':''}>${esc(r.name)}</option>`).join('');
+  document.getElementById('stQty').value=1;
+  document.getElementById('stNote').value='';
+  document.getElementById('stType').value='in';
+  openMo('stockMo');
+}
+
+async function quickStock(pid,rid,type){
+  const p=products.find(pp=>pp.id===pid);
+  const r=regions.find(rr=>rr.id===rid);
+  document.getElementById('stProd').innerHTML=`<option value="${pid}">${esc(p.name)}</option>`;
+  document.getElementById('stReg').innerHTML=`<option value="${rid}">${esc(r.name)}</option>`;
+  document.getElementById('stQty').value=1;
+  document.getElementById('stNote').value='';
+  document.getElementById('stType').value=type;
+  openMo('stockMo');
+}
+
+async function doStock(){
+  const pid=document.getElementById('stProd').value;
+  const rid=document.getElementById('stReg').value;
+  const type=document.getElementById('stType').value;
+  const qty=parseInt(document.getElementById('stQty').value)||0;
+  const note=document.getElementById('stNote').value.trim();
+  if(!pid||!rid){toast('请选择商品和地区');return}
+  if(qty<=0){toast('数量必须大于0');return}
+
+  try{
+    // Upsert inventory
+    const existing=inv.find(i=>i.product_id===pid&&i.region_id===rid);
+    if(existing){
+      const newQty=type==='in'?existing.quantity+qty:Math.max(0,existing.quantity-qty);
+      if(type==='out'&&existing.quantity<qty){toast('库存不足，当前仅 '+existing.quantity);return}
+      await api(`inventory?id=eq.${existing.id}`,{method:'PATCH',body:JSON.stringify({quantity:newQty})});
+      existing.quantity=newQty;
+    }else{
+      if(type==='out'){toast('该地区无此商品库存');return}
+      const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:pid,region_id:rid,quantity:qty})});
+      inv.push(res[0]);
+    }
+
+    // Log
+    const logRes=await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:rid,type,quantity:qty,note})});
+    logs.unshift(logRes[0]);
+
+    closeMo('stockMo');
+    renderAll();
+    toast(type==='in'?`已入库 +${qty}`:`已出库 -${qty}`);
+  }catch(e){toast('操作失败: '+e.message)}
+}
+
+// ===== UNDO =====
+async function undoLog(logId,pid,rid,type,qty){
+  showCo('确定回退此操作？库存数量将恢复。',async()=>{
+    try{
+      const logItem=logs.find(l=>l.id===logId);
+      // Reverse the stock change
+      const invItem=inv.find(i=>i.product_id===pid&&i.region_id===rid);
+      if(invItem){
+        const newQty=type==='in'?Math.max(0,invItem.quantity-qty):invItem.quantity+qty;
+        await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:newQty})});
+        invItem.quantity=newQty;
+      }
+      // Mark log as reverted
+      const newNote='[已回退] '+(logItem.note||'');
+      await api(`stock_logs?id=eq.${logId}`,{method:'PATCH',body:JSON.stringify({note:newNote})});
+      if(logItem)logItem.note=newNote;
+
+      renderAll();
+      toast('已回退 ✅');
+    }catch(e){toast('回退失败: '+e.message)}
+  });
+}
+
+// ===== PRODUCTS =====
+function openProdModal(id){
+  if(id){
+    const p=products.find(pp=>pp.id===id);
+    if(!p)return;
+    document.getElementById('prodTitle').textContent='编辑商品';
+    document.getElementById('pEditId').value=id;
+    document.getElementById('pName').value=p.name;
+    document.getElementById('pUnit').value=p.unit||'个';
+    document.getElementById('pCat').value=p.category||'';
+    document.getElementById('pNotes').value=p.notes||'';
+    document.getElementById('pDelBtn').style.display='block';
+  }else{
+    document.getElementById('prodTitle').textContent='添加商品';
+    document.getElementById('pEditId').value='';
+    document.getElementById('pName').value='';
+    document.getElementById('pUnit').value='个';
+    document.getElementById('pCat').value='';
+    document.getElementById('pNotes').value='';
+    document.getElementById('pDelBtn').style.display='none';
+  }
+  openMo('prodMo');
+}
+
+async function saveProd(){
+  const name=document.getElementById('pName').value.trim();
+  if(!name){toast('请输入商品名称');return}
+  const data={name,unit:document.getElementById('pUnit').value.trim()||'个',category:document.getElementById('pCat').value.trim(),notes:document.getElementById('pNotes').value.trim()};
+  try{
+    const eid=document.getElementById('pEditId').value;
+    if(eid){
+      await api(`products?id=eq.${eid}`,{method:'PATCH',body:JSON.stringify(data)});
+      const idx=products.findIndex(p=>p.id===eid);
+      if(idx>=0)Object.assign(products[idx],data);
+      toast('已更新 ✅');
+    }else{
+      const res=await api('products',{method:'POST',body:JSON.stringify(data)});
+      products.push(res[0]);
+      toast('已添加 ✅');
+    }
+    closeMo('prodMo');
+    renderAll();
+  }catch(e){toast('保存失败: '+e.message)}
+}
+
+function confirmDelProd(){
+  const eid=document.getElementById('pEditId').value;
+  const p=products.find(pp=>pp.id===eid);
+  showCo(`确定删除「${p?p.name:''}」？相关库存记录也会清除。`,async()=>{
+    try{
+      await api(`products?id=eq.${eid}`,{method:'DELETE'});
+      await api(`inventory?product_id=eq.${eid}`,{method:'DELETE'});
+      products=products.filter(p=>p.id!==eid);
+      inv=inv.filter(i=>i.product_id!==eid);
+      closeMo('prodMo');
+      closeCo();
+      renderAll();
+      toast('已删除 🗑️');
+    }catch(e){toast('删除失败: '+e.message)}
+  });
+}
+
+// ===== REGIONS =====
+async function addRegion(){
+  const name=document.getElementById('newRegName').value.trim();
+  if(!name){toast('请输入地区名称');return}
+  if(regions.find(r=>r.name===name)){toast('地区已存在');return}
+  try{
+    const res=await api('regions',{method:'POST',body:JSON.stringify({name})});
+    regions.push(res[0]);
+    if(!curReg)curReg=res[0].id;
+    document.getElementById('newRegName').value='';
+    renderAll();
+    toast('地区已添加 ✅');
+  }catch(e){toast('添加失败: '+e.message)}
+}
+
+function delRegion(id,name){
+  showCo(`确定删除地区「${name}」？该地区所有库存数据也会清除。`,async()=>{
+    try{
+      await api(`regions?id=eq.${id}`,{method:'DELETE'});
+      await api(`inventory?region_id=eq.${id}`,{method:'DELETE'});
+      regions=regions.filter(r=>r.id!==id);
+      inv=inv.filter(i=>i.region_id!==id);
+      if(curReg===id)curReg=regions.length?regions[0].id:'';
+      closeCo();
+      renderAll();
+      toast('已删除 🗑️');
+    }catch(e){toast('删除失败: '+e.message)}
+  });
+}
+
+// ===== MODAL HELPERS =====
+function openMo(id){document.getElementById(id).classList.add('show')}
+function closeMo(id){document.getElementById(id).classList.remove('show')}
+function showCo(text,cb){document.getElementById('coText').textContent=text;document.getElementById('coOk').onclick=cb;document.getElementById('coMo').classList.add('show')}
+function closeCo(){document.getElementById('coMo').classList.remove('show')}
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000)}
+
+// Close on overlay click
+document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e.target===e.currentTarget)closeMo(m.id)})});
+document.getElementById('coMo').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCo()});
 
 // ===== INIT =====
-fetchItems();
+loadAll();
 </script>
 </body>
 </html>
