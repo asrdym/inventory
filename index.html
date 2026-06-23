@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>库存管理</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #4f46e5;
+  --primary-light: #818cf8;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Header */
+.header {
+  background: var(--primary);
+  color: white;
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-lg);
+}
+.header h1 { font-size: 20px; font-weight: 700; }
+.header-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+/* Search & Filter */
+.search-bar {
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 56px;
+  z-index: 99;
+}
+.search-input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--primary-light); }
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-chip {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Stats */
+.stats-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+}
+.stat-card {
+  flex: 1;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-num { font-size: 22px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+/* Items */
+.items-list { padding: 0 16px 16px; }
+.item-card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.item-card:active { transform: scale(0.98); }
+.item-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.item-info { flex: 1; min-width: 0; }
+.item-name {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-meta {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+.item-qty {
+  text-align: right;
+  flex-shrink: 0;
+}
+.qty-num { font-size: 20px; font-weight: 700; }
+.qty-unit { font-size: 11px; color: var(--text-light); }
+.qty-low { color: var(--danger); }
+.qty-ok { color: var(--success); }
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  font-size: 28px;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.fab:active { transform: scale(0.9); }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 300;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+.modal-overlay.show { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.modal {
+  background: var(--card);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  background: var(--bg);
+}
+.form-input:focus { border-color: var(--primary-light); }
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+
+.btn-row { display: flex; gap: 10px; margin-top: 20px; }
+.btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-cancel { background: var(--bg); color: var(--text-light); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-delete-only { margin-top: 10px; }
+
+/* Swipe actions */
+.item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.act-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.act-edit { background: #e0e7ff; color: var(--primary); }
+.act-del { background: #fee2e2; color: var(--danger); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-light);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 15px; }
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: var(--text);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 999;
+  transition: transform 0.3s ease-out;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Confirm dialog */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 400;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-overlay.show { display: flex; }
+.confirm-box {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 24px;
+  width: 85%;
+  max-width: 320px;
+  text-align: center;
+}
+.confirm-text { font-size: 16px; margin-bottom: 20px; line-height: 1.5; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns .btn { padding: 12px; }
+
+/* Quick adjust */
+.adjust-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.adj-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+.adj-btn:active { background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📦 库存管理</h1>
+  <div class="header-sub" id="headerSub">加载中...</div>
+</div>
+
+<div class="search-bar">
+  <input class="search-input" id="searchInput" placeholder="搜索商品名称..." autocomplete="off">
+</div>
+
+<div class="filter-row" id="filterRow">
+  <div class="filter-chip active" data-cat="">全部</div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-num" id="statTotal">-</div>
+    <div class="stat-label">商品种类</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="statQty">-</div>
+    <div class="stat-label">总数量</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="statLow">-</div>
+    <div class="stat-label">库存不足</div>
+  </div>
+</div>
+
+<div class="items-list" id="itemsList">
+  <div class="loading"><div class="spinner"></div></div>
+</div>
+
+<button class="fab" id="fabAdd" onclick="openModal()">+</button>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">添加商品</div>
+    <input type="hidden" id="editId">
+    <div class="form-group">
+      <label class="form-label">商品名称 *</label>
+      <input class="form-input" id="inputName" placeholder="例：可乐、A4纸">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">数量</label>
+        <input class="form-input" id="inputQty" type="number" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">单位</label>
+        <input class="form-input" id="inputUnit" placeholder="个/箱/瓶" value="个">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类</label>
+      <input class="form-input" id="inputCategory" placeholder="例：饮料、办公用品">
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <input class="form-input" id="inputNotes" placeholder="可选">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveItem()">保存</button>
+    </div>
+    <button class="btn btn-danger btn-delete-only" id="btnDelete" style="display:none" onclick="confirmDelete()">🗑️ 删除此商品</button>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-text" id="confirmText">确定删除吗？</div>
+    <div class="confirm-btns">
+      <button class="btn btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const SUPABASE_URL = 'https://dtjprxqxlybqrzwmvviq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_X58fb-T-0_cZANnv5FVuCQ_sW3GyEfi';
+const TABLE = 'inventory';
+
+// ===== STATE =====
+let items = [];
+let currentFilter = '';
+let searchQuery = '';
+
+// ===== API =====
+async function api(path, opts = {}) {
+  const url = `${SUPABASE_URL}/rest/v1/${path}`;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...opts.headers
+  };
+  const res = await fetch(url, { ...opts, headers });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function fetchItems() {
+  try {
+    items = await api(`${TABLE}?order=created_at.desc`);
+    render();
+    document.getElementById('headerSub').textContent = `共 ${items.length} 种商品`;
+  } catch (e) {
+    console.error(e);
+    document.getElementById('headerSub').textContent = '加载失败，请检查配置';
+    document.getElementById('itemsList').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">无法连接数据库<br>请确认已执行建表SQL</div></div>';
+  }
+}
+
+async function createItem(data) {
+  return await api(TABLE, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+async function updateItem(id, data) {
+  return await api(`${TABLE}?id=eq.${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+async function deleteItem(id) {
+  return await api(`${TABLE}?id=eq.${id}`, {
+    method: 'DELETE'
+  });
+}
+
+// ===== RENDER =====
+function render() {
+  const list = document.getElementById('itemsList');
+  const filtered = items.filter(item => {
+    if (currentFilter && item.category !== currentFilter) return false;
+    if (searchQuery && !item.name.toLowerCase().includes(searchQuery) &&
+        !(item.category || '').toLowerCase().includes(searchQuery)) return false;
+    return true;
+  });
+
+  // Stats
+  document.getElementById('statTotal').textContent = items.length;
+  document.getElementById('statQty').textContent = items.reduce((s, i) => s + (i.quantity || 0), 0);
+  document.getElementById('statLow').textContent = items.filter(i => i.quantity <= 5).length;
+
+  // Categories
+  const cats = [...new Set(items.map(i => i.category).filter(Boolean))];
+  const filterRow = document.getElementById('filterRow');
+  filterRow.innerHTML = `<div class="filter-chip ${currentFilter === '' ? 'active' : ''}" data-cat="">全部</div>` +
+    cats.map(c => `<div class="filter-chip ${currentFilter === c ? 'active' : ''}" data-cat="${c}">${c}</div>`).join('');
+  filterRow.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.onclick = () => {
+      currentFilter = chip.dataset.cat;
+      render();
+    };
+  });
+
+  // Items
+  if (filtered.length === 0) {
+    list.innerHTML = items.length === 0
+      ? '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">还没有商品<br>点击右下角 + 添加</div></div>'
+      : '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">没有找到匹配的商品</div></div>';
+    return;
+  }
+
+  const colors = ['#e0e7ff','#fce7f3','#d1fae5','#fef3c7','#e0f2fe','#f3e8ff','#ffe4e6','#f0fdf4'];
+  const icons = ['📦','🏷️','📋','📌','🔖'];
+
+  list.innerHTML = filtered.map((item, i) => {
+    const color = colors[item.name.length % colors.length];
+    const icon = icons[item.name.length % icons.length];
+    const isLow = item.quantity <= 5;
+    return `
+      <div class="item-card" onclick="openModal('${item.id}')">
+        <div class="item-icon" style="background:${color}">${icon}</div>
+        <div class="item-info">
+          <div class="item-name">${esc(item.name)}</div>
+          <div class="item-meta">${item.category ? esc(item.category) + ' · ' : ''}${timeAgo(item.created_at)}</div>
+          <div class="adjust-btns">
+            <button class="adj-btn" onclick="event.stopPropagation();adjustQty('${item.id}',-1)">−</button>
+            <button class="adj-btn" onclick="event.stopPropagation();adjustQty('${item.id}',1)">+</button>
+          </div>
+        </div>
+        <div class="item-qty">
+          <div class="qty-num ${isLow ? 'qty-low' : 'qty-ok'}">${item.quantity}</div>
+          <div class="qty-unit">${esc(item.unit || '个')}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return mins + '分钟前';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + '小时前';
+  const days = Math.floor(hrs / 24);
+  return days + '天前';
+}
+
+// ===== MODAL =====
+function openModal(id) {
+  const overlay = document.getElementById('modalOverlay');
+  const title = document.getElementById('modalTitle');
+  const btnDel = document.getElementById('btnDelete');
+
+  if (id) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    title.textContent = '编辑商品';
+    document.getElementById('editId').value = id;
+    document.getElementById('inputName').value = item.name;
+    document.getElementById('inputQty').value = item.quantity;
+    document.getElementById('inputUnit').value = item.unit || '个';
+    document.getElementById('inputCategory').value = item.category || '';
+    document.getElementById('inputNotes').value = item.notes || '';
+    btnDel.style.display = 'block';
+  } else {
+    title.textContent = '添加商品';
+    document.getElementById('editId').value = '';
+    document.getElementById('inputName').value = '';
+    document.getElementById('inputQty').value = '0';
+    document.getElementById('inputUnit').value = '个';
+    document.getElementById('inputCategory').value = '';
+    document.getElementById('inputNotes').value = '';
+    btnDel.style.display = 'none';
+  }
+  overlay.classList.add('show');
+  setTimeout(() => document.getElementById('inputName').focus(), 300);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+async function saveItem() {
+  const name = document.getElementById('inputName').value.trim();
+  if (!name) { toast('请输入商品名称'); return; }
+
+  const data = {
+    name,
+    quantity: parseInt(document.getElementById('inputQty').value) || 0,
+    unit: document.getElementById('inputUnit').value.trim() || '个',
+    category: document.getElementById('inputCategory').value.trim(),
+    notes: document.getElementById('inputNotes').value.trim()
+  };
+
+  try {
+    const editId = document.getElementById('editId').value;
+    if (editId) {
+      await updateItem(editId, data);
+      toast('已更新 ✅');
+    } else {
+      await createItem(data);
+      toast('已添加 ✅');
+    }
+    closeModal();
+    fetchItems();
+  } catch (e) {
+    toast('保存失败: ' + e.message);
+  }
+}
+
+async function adjustQty(id, delta) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const newQty = Math.max(0, item.quantity + delta);
+  try {
+    await updateItem(id, { quantity: newQty });
+    item.quantity = newQty;
+    render();
+  } catch (e) {
+    toast('更新失败');
+  }
+}
+
+// ===== DELETE =====
+let pendingDeleteId = null;
+
+function confirmDelete() {
+  pendingDeleteId = document.getElementById('editId').value;
+  document.getElementById('confirmText').textContent = '确定删除这个商品吗？';
+  document.getElementById('confirmOverlay').classList.add('show');
+  document.getElementById('confirmOk').onclick = doDelete;
+}
+
+async function doDelete() {
+  if (!pendingDeleteId) return;
+  try {
+    await deleteItem(pendingDeleteId);
+    closeConfirm();
+    closeModal();
+    toast('已删除 🗑️');
+    fetchItems();
+  } catch (e) {
+    toast('删除失败');
+  }
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  pendingDeleteId = null;
+}
+
+// ===== TOAST =====
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ===== SEARCH =====
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.toLowerCase();
+  render();
+});
+
+// Close modals on overlay click
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.getElementById('confirmOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeConfirm();
+});
+
+// ===== INIT =====
+fetchItems();
+</script>
+</body>
+</html>
