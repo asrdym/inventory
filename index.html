@@ -156,6 +156,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .parse-result{margin-top:8px;font-size:12px;color:var(--tl)}
 .parse-ok{color:var(--s)}.parse-fail{color:var(--d)}
 
+
+/* Login */
+.login-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--p);padding:20px}
+.login-box{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:var(--shl)}
+.login-logo{font-size:40px;text-align:center;margin-bottom:8px}
+.login-title{font-size:20px;font-weight:700;text-align:center;margin-bottom:20px;color:var(--t)}
+.login-select{width:100%;padding:12px;border:2px solid var(--bd);border-radius:12px;font-size:16px;outline:none;background:var(--bg);margin-bottom:12px}
+.login-pin{width:100%;padding:12px;border:2px solid var(--bd);border-radius:12px;font-size:24px;text-align:center;letter-spacing:12px;outline:none;background:var(--bg);margin-bottom:16px}
+.login-pin:focus{border-color:var(--pl)}
+.login-btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;font-weight:700;background:var(--p);color:#fff;cursor:pointer}
+.login-btn:active{opacity:.8}
+.login-err{color:var(--d);font-size:13px;text-align:center;margin-bottom:10px;display:none}
+.login-user{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--card);border-radius:10px;font-size:12px;color:var(--tl);margin-bottom:10px;box-shadow:var(--sh)}
+.login-user b{color:var(--t);font-size:13px}
+.login-logout{margin-left:auto;color:var(--d);cursor:pointer;font-weight:600}
+
+/* Employee manage */
+.emp-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px}
+.emp-name{font-size:14px;font-weight:600}
+.emp-del{width:30px;height:30px;border-radius:8px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer}
+
 /* Loading */
 .ld{display:flex;justify-content:center;padding:30px}
 .sp{width:28px;height:28px;border:3px solid var(--bd);border-top-color:var(--p);border-radius:50%;animation:sp .8s linear infinite}
@@ -164,9 +185,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 
-<div class="hdr"><h1>📦 库存管理</h1></div>
 
-<div class="tabs">
+<!-- Login Page -->
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">📦</div>
+    <div class="login-title">库存管理系统</div>
+    <div class="login-err" id="loginErr">密码错误，请重试</div>
+    <select class="login-select" id="loginName">
+      <option value="">选择你的名字...</option>
+    </select>
+    <input class="login-pin" id="loginPin" type="password" maxlength="8" placeholder="····" inputmode="numeric" autocomplete="off">
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+  </div>
+</div>
+
+<div class="hdr"><h1>📦 库存管理</h1></div>
+<div class="login-user" id="userBar" style="display:none"><span>👤</span><b id="userName"></b><span class="login-logout" onclick="doLogout()">退出</span></div>
+
+<div class="tabs" id="mainTabs" style="display:none">
   <div class="tab active" data-tab="home">首页</div>
   <div class="tab" data-tab="prod">商品</div>
   <div class="tab" data-tab="log">记录</div>
@@ -435,10 +472,11 @@ function renderLog(){
   const batches=[];
   const batchMap={};
   ls.forEach(l=>{
+    const um=l.note?.match(/\[user:([^\]]+)\]/);const userName=um?um[1]:'';
     const bm=l.note?.match(/\[batch:([^\]]+)\]/);
     const bid=bm?bm[1]:'single_'+l.id;
     if(!batchMap[bid]){
-      batchMap[bid]={id:bid,type:l.type,time:l.created_at,items:[],reverted:false,note:''};
+      batchMap[bid]={id:bid,type:l.type,time:l.created_at,items:[],reverted:false,note:'',userName:''};
       batches.push(batchMap[bid]);
     }
     const batch=batchMap[bid];
@@ -448,6 +486,7 @@ function renderLog(){
     if(l.note&&l.note.startsWith('[已回退]'))batch.reverted=true;
     const cleanNote=l.note?.replace(/\[batch:[^\]]+\]\s*/,'').replace(/^\[已回退\]\s*/,'').trim();
     if(cleanNote&&!batch.note)batch.note=cleanNote;
+    if(userName&&!batch.userName)batch.userName=userName;
   });
 
   el.innerHTML=batches.map(b=>{
@@ -459,6 +498,7 @@ function renderLog(){
     else if(isIn){typeLabel='⬆️入库';typeClass='log-in'}
     else{typeLabel='⬇️出库';typeClass='log-out'}
 
+    const userTag=b.userName?'<span style="display:inline-block;padding:2px 6px;background:#e0e7ff;border-radius:4px;font-size:10px;font-weight:600;color:var(--p);margin-left:6px">👤 '+esc(b.userName)+'</span>':'';
     const itemsHtml=b.items.map(it=>{
       const sign=isIn||isTf?'+':'-';
       return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px">
@@ -476,7 +516,7 @@ function renderLog(){
     return`<div class="log-card ${b.reverted?'log-reverted':''}">
       <div class="log-hd">
         <span class="log-type ${typeClass}">${typeLabel} (${b.items.length}件)</span>
-        <span class="log-time">${fmtTime(b.time)}</span>
+        <span>${userTag}<span class="log-time" style="margin-left:4px">${fmtTime(b.time)}</span></span>
       </div>
       <div class="log-body">
         ${b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:600">修正为 ${it.quantity}</span></div>`).join(''):itemsHtml}
@@ -670,7 +710,7 @@ async function saveOp(){
           const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,quantity:newQty})});
           inv.push(res[0]);
         }
-        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:'fix',quantity:Math.abs(newQty-oldQty),note:'[batch:'+batchId+'] '+`修正: ${oldQty} → ${newQty}`})});
+        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:'fix',quantity:Math.abs(newQty-oldQty),note:'[user:'+(currentUser?currentUser.name:'未知')+'] [batch:'+batchId+'] '+`修正: ${oldQty} → ${newQty}`})});
         const p=products.find(pp=>pp.id===pid);
         summary.push({name:p?p.name:'未知',oldQty,newQty,unit:p?p.unit:'个'});
       }
@@ -704,7 +744,7 @@ async function saveOp(){
 
         const fromName=regions.find(r=>r.id===fromReg)?.name||'';
         const toName=regions.find(r=>r.id===toReg)?.name||'';
-        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:fromReg,type:'transfer',quantity:qty,note:'[batch:'+batchId+'] '+`${fromName} → ${toName}`})});
+        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:fromReg,type:'transfer',quantity:qty,note:'[user:'+(currentUser?currentUser.name:'未知')+'] [batch:'+batchId+'] '+`${fromName} → ${toName}`})});
 
         const p=products.find(pp=>pp.id===pid);
         summary.push({name:p?p.name:'未知',qty,unit:p?p.unit:'个'});
@@ -1050,8 +1090,111 @@ function parsePaste(){
 }
 
 
+
+// ===== LOGIN =====
+let currentUser=null;
+
+async function loadEmployees(){
+  try{
+    const emps=await api('employees?order=name');
+    renderEmpList(emps);
+    // Fill login select
+    const sel=document.getElementById('loginName');
+    sel.innerHTML='<option value="">选择你的名字...</option>'+emps.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('');
+    return emps;
+  }catch(e){
+    console.error('employees load failed:',e);
+    return[];
+  }
+}
+
+function renderEmpList(emps){
+  const el=document.getElementById('empList');
+  if(!el)return;
+  if(!emps||emps.length===0){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--tl);font-size:13px">暂无员工，请添加</div>';return}
+  el.innerHTML=emps.map(e=>`<div class="emp-item"><div><span class="emp-name">${esc(e.name)}</span>${e.is_admin?'<span style="font-size:11px;color:var(--p);margin-left:6px">管理员</span>':''}</div><button class="emp-del" onclick="delEmployee('${e.id}','${esc(e.name)}')">✕</button></div>`).join('');
+}
+
+async function addEmployee(){
+  const name=document.getElementById('newEmpName').value.trim();
+  const pin=document.getElementById('newEmpPin').value.trim()||'1234';
+  if(!name){toast('请输入员工姓名');return}
+  try{
+    await api('employees',{method:'POST',body:JSON.stringify({name,pin})});
+    document.getElementById('newEmpName').value='';
+    document.getElementById('newEmpPin').value='';
+    const emps=await api('employees?order=name');
+    renderEmpList(emps);
+    toast('员工已添加 ✅');
+  }catch(e){toast('添加失败: '+e.message)}
+}
+
+function delEmployee(id,name){
+  showCo(`确定删除员工「${name}」？`,async()=>{
+    try{
+      await api(`employees?id=eq.${id}`,{method:'DELETE'});
+      const emps=await api('employees?order=name');
+      renderEmpList(emps);
+      closeCo();
+      toast('已删除 🗑️');
+    }catch(e){toast('删除失败: '+e.message)}
+  });
+}
+
+async function doLogin(){
+  const sel=document.getElementById('loginName');
+  const empId=sel.value;
+  const pin=document.getElementById('loginPin').value;
+  if(!empId){document.getElementById('loginErr').textContent='请选择你的名字';document.getElementById('loginErr').style.display='block';return}
+  if(!pin){document.getElementById('loginErr').textContent='请输入PIN码';document.getElementById('loginErr').style.display='block';return}
+  try{
+    const emps=await api(`employees?id=eq.${empId}&pin=eq.${pin}`);
+    if(emps.length===0){
+      document.getElementById('loginErr').textContent='PIN码错误';
+      document.getElementById('loginErr').style.display='block';
+      return;
+    }
+    currentUser=emps[0];
+    sessionStorage.setItem('inv_user',JSON.stringify(currentUser));
+    showApp();
+  }catch(e){
+    document.getElementById('loginErr').textContent='登录失败: '+e.message;
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+
+function doLogout(){
+  currentUser=null;
+  sessionStorage.removeItem('inv_user');
+  document.getElementById('loginPage').style.display='';
+  document.getElementById('mainTabs').style.display='none';
+  document.getElementById('userBar').style.display='none';
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
+  document.getElementById('loginPin').value='';
+  document.getElementById('loginErr').style.display='none';
+}
+
+function showApp(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('mainTabs').style.display='';
+  document.getElementById('userBar').style.display='';
+  document.getElementById('userName').textContent=currentUser.name;
+  document.getElementById('sec-home').classList.add('show');
+  loadAll();
+}
+
+// Check session on load
+function checkSession(){
+  const saved=sessionStorage.getItem('inv_user');
+  if(saved){
+    try{currentUser=JSON.parse(saved);showApp();return true;}catch(e){}
+  }
+  return false;
+}
+
+
 // ===== INIT =====
-loadAll();
+loadEmployees().then(()=>{checkSession()});
 </script>
 </body>
 </html>
