@@ -408,6 +408,33 @@ A4纸 x5
 
 <div class="tt" id="toast"></div>
 
+<!-- Debug panel for mobile -->
+<div id="debugPanel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#2d3436;color:#e57373;padding:10px 14px;font-size:11px;z-index:9999;max-height:120px;overflow-y:auto;font-family:monospace;word-break:break-all">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <span style="color:#81C784;font-weight:700">⚠️ 错误日志（截图发给我）</span>
+    <span onclick="document.getElementById('debugPanel').style.display='none'" style="color:#fff;cursor:pointer;padding:2px 8px">✕</span>
+  </div>
+  <div id="debugLog"></div>
+</div>
+<script>
+window.onerror=function(msg,url,line,col,err){
+  const el=document.getElementById('debugPanel');
+  const log=document.getElementById('debugLog');
+  if(el&&log){
+    el.style.display='';
+    log.innerHTML+='<div style="border-bottom:1px solid #444;padding:3px 0">'+msg+' (line '+line+')</div>';
+  }
+};
+window.addEventListener('unhandledrejection',function(e){
+  const el=document.getElementById('debugPanel');
+  const log=document.getElementById('debugLog');
+  if(el&&log){
+    el.style.display='';
+    log.innerHTML+='<div style="border-bottom:1px solid #444;padding:3px 0">Promise: '+(e.reason?.message||e.reason)+'</div>';
+  }
+});
+</script>
+
 <!-- Batch Operation Modal -->
 <div class="mo" id="batchMo">
   <div class="md">
