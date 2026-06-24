@@ -477,7 +477,7 @@ async function loadAll(){
       ]);
       [regions,products,inv,logs]=results;
       if(!curReg&&regions.length)curReg=regions[0].id;
-      renderAll();
+      try{renderAll()}catch(re){console.error('renderAll error:',re)}
       return;
     }catch(e){
       console.error('loadAll attempt '+(attempt+1)+' failed:',e);
@@ -488,14 +488,17 @@ async function loadAll(){
 }
 
 // ===== RENDER =====
-function renderAll(){renderRegSel();renderInv();renderProd();renderLog();renderRegList()}
+function renderAll(){
+  const fns=[['renderRegSel',renderRegSel],['renderInv',renderInv],['renderProd',renderProd],['renderLog',renderLog],['renderRegList',renderRegList]];
+  fns.forEach(([name,fn])=>{try{fn()}catch(e){console.error(name+' error:',e)}});
+}
 
 function renderRegSel(){
   const el=document.getElementById('regSel');
   el.innerHTML=regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selReg('${r.id}')">${esc(r.name)}</div>`).join('');
 }
 
-function selReg(id){curReg=id;renderRegSel();renderInv()}
+function selReg(id){curReg=id;renderRegSel();try{renderInv()}catch(e){console.error(e)}}
 
 function renderCatSel(prefix,curVal,onChange){
   const cats=[...new Set(products.map(p=>p.category).filter(Boolean))].sort();
@@ -504,8 +507,8 @@ function renderCatSel(prefix,curVal,onChange){
   html+=cats.map(c=>`<div class="reg-chip ${curVal===c?'active':''}" onclick="${onChange}('${esc(c)}')">${esc(c)}</div>`).join('');
   return html;
 }
-function selHomeCat(c){homeCategory=c;document.getElementById('homeCatSel').innerHTML=renderCatSel('home',homeCategory,'selHomeCat');renderInv()}
-function selProdCat(c){prodCategory=c;renderProd()}
+function selHomeCat(c){homeCategory=c;document.getElementById('homeCatSel').innerHTML=renderCatSel('home',homeCategory,'selHomeCat');try{renderInv()}catch(e){console.error(e)}}
+function selProdCat(c){prodCategory=c;try{renderProd()}catch(e){console.error(e)}}
 
 function renderInv(){
   const el=document.getElementById('invList');
@@ -567,7 +570,7 @@ function renderProdRegSel(){
   html+=regions.map(r=>`<div class="reg-chip ${prodCurReg===r.id?'active':''}" onclick="selProdReg('${r.id}')">${esc(r.name)}</div>`).join('');
   el.innerHTML=html;
 }
-function selProdReg(id){prodCurReg=id;renderProdRegSel();renderProd()}
+function selProdReg(id){prodCurReg=id;renderProdRegSel();try{renderProd()}catch(e){console.error(e)}}
 
 function renderProd(){
   const el=document.getElementById('prodList');
@@ -612,7 +615,7 @@ function selLogDate(f){
   document.querySelectorAll('#logDateSel .reg-chip').forEach(c=>{
     c.classList.toggle('active',c.textContent===(f==='all'?'全部':f==='today'?'今天':f==='week'?'本周':'本月'));
   });
-  renderLog();
+  try{renderLog()}catch(e){console.error(e)}
 }
 
 function renderLog(){
@@ -724,16 +727,16 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
     document.getElementById('sec-'+t.dataset.tab).classList.add('show');
     curTab=t.dataset.tab;
-    if(curTab==='home'){closeOp();renderInv()}
-    if(curTab==='prod'){prodSearchQuery='';document.getElementById('pSearch').value='';renderProd();}
-    if(curTab==='log'){logSearchQuery='';document.getElementById('lSearch').value='';renderLog();}
-    if(curTab==='set')renderSettings();
+    if(curTab==='home'){closeOp();try{renderInv()}catch(e){console.error(e)}}
+    if(curTab==='prod'){prodSearchQuery='';document.getElementById('pSearch').value='';try{renderProd()}catch(e){console.error(e)}}
+    if(curTab==='log'){logSearchQuery='';document.getElementById('lSearch').value='';try{renderLog()}catch(e){console.error(e)}}
+    if(curTab==='set')try{renderSettings()}catch(e){console.error(e)}
   };
 });
 
-document.getElementById('sSearch').oninput=e=>{homeSearchQuery=e.target.value.toLowerCase();renderInv()};
-document.getElementById('pSearch').oninput=e=>{prodSearchQuery=e.target.value.toLowerCase();renderProd()};
-document.getElementById('lSearch').oninput=e=>{logSearchQuery=e.target.value.toLowerCase();renderLog()};
+document.getElementById('sSearch').oninput=e=>{homeSearchQuery=e.target.value.toLowerCase();try{renderInv()}catch(e){console.error(e)}};
+document.getElementById('pSearch').oninput=e=>{prodSearchQuery=e.target.value.toLowerCase();try{renderProd()}catch(e){console.error(e)}};
+document.getElementById('lSearch').oninput=e=>{logSearchQuery=e.target.value.toLowerCase();try{renderLog()}catch(e){console.error(e)}};
 
 // ===== OPERATION =====
 function openOp(type){
@@ -778,7 +781,7 @@ function openOp(type){
 function closeOp(){
   document.getElementById('sec-op').classList.remove('show');
   document.getElementById('sec-home').classList.add('show');
-  renderInv();
+  try{renderInv()}catch(e){console.error('renderInv error:',e)}
 }
 
 function selOpReg(id){
@@ -967,6 +970,7 @@ async function saveOp(){
       api('inventory'),
       api('stock_logs?order=created_at.desc&limit=500')
     ]);
+    try{renderAll()}catch(e){console.error('renderAll after save error:',e)}
 
   }catch(e){toast('操作失败: '+e.message)}
 }
@@ -1712,7 +1716,7 @@ async function deleteSelectedLogs(){
       logs=logs.filter(l=>!selectedLogs.has(l.id));
       selectedLogs.clear();
       closeCo();
-      renderLog();
+      try{renderLog()}catch(e){console.error(e)}
       toast('已删除 ✅');
     }catch(e){toast('删除失败: '+e.message)}
   });
