@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--p:#4f46e5;--pl:#818cf8;--pd:#3730a3;--d:#ef4444;--s:#22c55e;--w:#f59e0b;--o:#f97316;--bg:#f1f5f9;--card:#fff;--t:#1e293b;--tl:#64748b;--bd:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.08);--shl:0 4px 16px rgba(0,0,0,.12);--radius:14px;--transition:all .2s ease}
+:root{--p:#6B8F71;--pl:#95B89A;--pd:#4A6B4F;--d:#e57373;--s:#81C784;--w:#FFB74D;--o:#FF8A65;--bg:#f5f7f5;--card:#fff;--t:#2d3436;--tl:#7f8c8d;--bd:#e0e6e0;--sh:0 2px 8px rgba(107,143,113,.08);--shl:0 4px 20px rgba(107,143,113,.12);--radius:20px;--transition:all .2s ease}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;padding-bottom:80px;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 
 /* Header */
@@ -31,34 +31,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .act-btn{padding:18px 0;border-radius:var(--radius);border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--sh);transition:var(--transition)}
 .act-btn:active{transform:scale(.96);box-shadow:none}
 .act-btn .icon{font-size:28px}
-.act-in{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#166534}
-.act-out{background:linear-gradient(135deg,#fee2e2,#fecaca);color:#991b1b}
-.act-transfer{background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0c4a6e}
-.act-fix{background:linear-gradient(135deg,#fef9c3,#fde68a);color:#854d0e}
+.act-in{background:linear-gradient(135deg,#d4edda,#b8d4be);color:#2d5a3d}
+.act-out{background:linear-gradient(135deg,#f8d7da,#f1c0c4);color:#8b3a3a}
+.act-transfer{background:linear-gradient(135deg,#d1ecf1,#b8dfe6);color:#0c5460}
+.act-fix{background:linear-gradient(135deg,#fff3cd,#ffe0a0);color:#856404}
 
 /* Region chips */
 .reg-sel{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
 .reg-sel::-webkit-scrollbar{display:none}
 .reg-chip{flex-shrink:0;padding:7px 16px;border-radius:22px;font-size:13px;font-weight:600;border:1.5px solid var(--bd);background:var(--card);color:var(--tl);cursor:pointer;transition:var(--transition);white-space:nowrap}
 .reg-chip:active{transform:scale(.95)}
-.reg-chip.active{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 2px 8px rgba(79,70,229,.3)}
+.reg-chip.active{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 2px 10px rgba(107,143,113,.3)}
 
 /* Stats */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.st{background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:var(--sh)}
+.st{background:var(--card);border-radius:16px;padding:12px 8px;text-align:center;box-shadow:var(--sh)}
 .st-n{font-size:22px;font-weight:800}
 .st-l{font-size:10px;color:var(--tl);margin-top:3px;font-weight:500}
 
 /* Search */
 .sbar{margin-bottom:14px;position:relative}
-.sbar input{width:100%;padding:11px 14px 11px 40px;border:2px solid var(--bd);border-radius:12px;font-size:14px;outline:none;background:var(--card);transition:var(--transition)}
-.sbar input:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.sbar input{width:100%;padding:11px 14px 11px 40px;border:2px solid var(--bd);border-radius:14px;font-size:14px;outline:none;background:var(--card);transition:var(--transition)}
+.sbar input:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(107,143,113,.12)}
 .sbar::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
 
 /* Cards */
 .card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px;transition:var(--transition)}
 .card:active{transform:scale(.99)}
-.card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.card-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .card-info{flex:1;min-width:0}
 .card-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-meta{font-size:11px;color:var(--tl);margin-top:2px}
@@ -69,17 +69,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 /* Operation page */
 .op-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.op-back{width:38px;height:38px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.op-back{width:38px;height:38px;border-radius:14px;border:1.5px solid var(--bd);background:var(--card);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
 .op-back:active{background:var(--bg);transform:scale(.9)}
 .op-title{font-size:18px;font-weight:700;flex:1}
-.op-badge{padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700}
+.op-badge{padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700}
 
 /* Pick row */
-.pick-row{background:var(--card);border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+.pick-row{background:var(--card);border-radius:16px;padding:14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
 .pick-name{flex:1;font-size:14px;font-weight:600}
 .pick-stock{font-size:11px;color:var(--tl);margin-top:3px}
 .pick-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.pick-btn{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);color:var(--t)}
+.pick-btn{width:36px;height:36px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);color:var(--t)}
 .pick-btn:active{background:var(--bg);transform:scale(.9)}
 .pick-btn:disabled{opacity:.3;cursor:not-allowed}
 .pick-num{font-size:18px;font-weight:800;min-width:36px;text-align:center}
@@ -92,12 +92,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* Save bar */
 .save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:14px 16px;box-shadow:0 -4px 16px rgba(0,0,0,.1);z-index:200;display:none;backdrop-filter:blur(10px)}
 .save-bar.show{display:block}
-.save-btn{width:100%;padding:15px;border-radius:14px;border:none;font-size:16px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;transition:var(--transition);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.save-btn{width:100%;padding:15px;border-radius:16px;border:none;font-size:16px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;transition:var(--transition);box-shadow:0 4px 14px rgba(107,143,113,.3)}
 .save-btn:active{opacity:.8;transform:scale(.98)}
 .save-btn:disabled{opacity:.5;cursor:not-allowed}
 
 /* FAB */
-.fab{position:fixed;bottom:20px;right:16px;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;font-size:28px;box-shadow:0 4px 16px rgba(79,70,229,.4);cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.fab{position:fixed;bottom:20px;right:16px;width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;font-size:28px;box-shadow:0 4px 18px rgba(107,143,113,.4);cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
 .fab:active{transform:scale(.9)}
 
 /* Modal */
@@ -109,31 +109,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .mt{font-size:18px;font-weight:700;margin-bottom:18px;text-align:center}
 .fg{margin-bottom:14px}
 .fl{display:block;font-size:12px;font-weight:600;color:var(--tl);margin-bottom:6px}
-.fi{width:100%;padding:12px;border:2px solid var(--bd);border-radius:12px;font-size:15px;outline:none;background:var(--bg);transition:var(--transition)}
-.fi:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.fi{width:100%;padding:12px;border:2px solid var(--bd);border-radius:14px;font-size:15px;outline:none;background:var(--bg);transition:var(--transition)}
+.fi:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(107,143,113,.12)}
 .fr{display:flex;gap:10px}.fr .fg{flex:1}
 .br{display:flex;gap:10px;margin-top:18px}
-.btn{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:var(--transition)}
+.btn{flex:1;padding:13px;border-radius:14px;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:var(--transition)}
 .btn:active{opacity:.8;transform:scale(.98)}
-.bp{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;box-shadow:0 2px 8px rgba(79,70,229,.2)}
+.bp{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;box-shadow:0 2px 8px rgba(107,143,113,.2)}
 .bc{background:var(--bg);color:var(--tl)}.bd{background:var(--d);color:#fff}
 
 /* Log */
-.log-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.log-card{background:var(--card);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
 .log-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
-.log-type{font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px}
-.log-in{background:#dcfce7;color:#166534}.log-out{background:#fee2e2;color:#991b1b}.log-tf{background:#e0f2fe;color:#0c4a6e}.log-fix{background:#fef9c3;color:#854d0e}
+.log-type{font-size:12px;font-weight:700;padding:4px 10px;border-radius:10px}
+.log-in{background:#d4edda;color:#2d5a3d}.log-out{background:#f8d7da;color:#8b3a3a}.log-tf{background:#d1ecf1;color:#0c5460}.log-fix{background:#fff3cd;color:#856404}
 .log-time{font-size:11px;color:var(--tl)}
 .log-body{font-size:13px;line-height:1.7}
 .log-body b{font-weight:600}
-.log-undo{margin-top:10px;padding:6px 14px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:12px;color:var(--p);cursor:pointer;font-weight:600;transition:var(--transition)}
+.log-undo{margin-top:10px;padding:6px 14px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);font-size:12px;color:var(--p);cursor:pointer;font-weight:600;transition:var(--transition)}
 .log-undo:active{opacity:.7;background:var(--bg)}
 .log-reverted{opacity:.5;text-decoration:line-through}
 
 /* Confirm */
 .co{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .co.show{display:flex}
-.cb{background:var(--card);border-radius:18px;padding:24px;width:85%;max-width:320px;text-align:center;animation:slideUp .2s ease-out}
+.cb{background:var(--card);border-radius:24px;padding:24px;width:85%;max-width:320px;text-align:center;animation:slideUp .2s ease-out}
 .ct{font-size:15px;margin-bottom:18px;line-height:1.6}
 
 /* Done summary */
@@ -147,9 +147,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .done-item:last-child{border-bottom:none}
 
 /* Region manage */
-.rm-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px}
+.rm-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg);border-radius:14px;margin-bottom:8px}
 .rm-name{font-size:14px;font-weight:600}
-.rm-del{width:32px;height:32px;border-radius:10px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer;transition:var(--transition)}
+.rm-del{width:32px;height:32px;border-radius:12px;border:none;background:#f8d7da;color:var(--d);font-size:16px;cursor:pointer;transition:var(--transition)}
 .rm-del:active{transform:scale(.9)}
 
 /* Log selection */
@@ -165,30 +165,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .empty-t{font-size:14px;line-height:1.6}
 
 /* Toast */
-.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:12px 24px;border-radius:12px;font-size:13px;z-index:999;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--shl)}
+.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:12px 24px;border-radius:14px;font-size:13px;z-index:999;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--shl)}
 .tt.show{transform:translateX(-50%) translateY(0)}
 
 /* Smart paste */
 .paste-toggle{display:flex;gap:8px;margin-bottom:12px}
-.paste-btn{flex:1;padding:12px;border:2px dashed var(--pl);border-radius:14px;background:#f0f0ff;color:var(--p);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:var(--transition)}
+.paste-btn{flex:1;padding:12px;border:2px dashed var(--pl);border-radius:16px;background:#e8f5e9;color:var(--pd);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:var(--transition)}
 .paste-btn:active{background:#e0e0ff}
 .paste-wrap{display:none;margin-bottom:12px}
 .paste-wrap.show{display:block}
-.paste-area{width:100%;height:120px;padding:12px;border:2px solid var(--bd);border-radius:14px;font-size:14px;outline:none;background:var(--bg);resize:none;font-family:inherit;transition:var(--transition)}
-.paste-area:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.paste-area{width:100%;height:120px;padding:12px;border:2px solid var(--bd);border-radius:16px;font-size:14px;outline:none;background:var(--bg);resize:none;font-family:inherit;transition:var(--transition)}
+.paste-area:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(107,143,113,.12)}
 .parse-result{margin-top:10px;font-size:12px;color:var(--tl)}
 .parse-ok{color:var(--s)}.parse-fail{color:var(--d)}
 
 /* Login */
 .login-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--p),var(--pd));padding:20px}
-.login-box{background:var(--card);border-radius:24px;padding:28px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.login-box{background:var(--card);border-radius:28px;padding:28px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(107,143,113,.15)}
 .login-logo{font-size:48px;text-align:center;margin-bottom:8px}
 .login-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px;color:var(--t)}
 .login-sub{font-size:13px;color:var(--tl);text-align:center;margin-bottom:24px}
 .login-select{width:100%;padding:13px;border:2px solid var(--bd);border-radius:12px;font-size:16px;outline:none;background:var(--bg);margin-bottom:12px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .login-pin{width:100%;padding:14px;border:2px solid var(--bd);border-radius:12px;font-size:28px;text-align:center;letter-spacing:14px;outline:none;background:var(--bg);margin-bottom:16px;transition:var(--transition)}
-.login-pin:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
-.login-btn{width:100%;padding:15px;border-radius:14px;border:none;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;cursor:pointer;transition:var(--transition);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.login-pin:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(107,143,113,.12)}
+.login-btn{width:100%;padding:15px;border-radius:16px;border:none;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;cursor:pointer;transition:var(--transition);box-shadow:0 4px 14px rgba(107,143,113,.3)}
 .login-btn:active{opacity:.8;transform:scale(.98)}
 .login-err{color:var(--d);font-size:13px;text-align:center;margin-bottom:10px;display:none}
 .login-user{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-radius:12px;font-size:12px;color:var(--tl);margin-bottom:12px;box-shadow:var(--sh)}
@@ -198,13 +198,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* Employee manage */
 .emp-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px}
 .emp-name{font-size:14px;font-weight:600}
-.emp-del{width:32px;height:32px;border-radius:10px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer;transition:var(--transition)}
+.emp-del{width:32px;height:32px;border-radius:12px;border:none;background:#f8d7da;color:var(--d);font-size:16px;cursor:pointer;transition:var(--transition)}
 .emp-del:active{transform:scale(.9)}
 
 /* Import area */
 .import-area{margin-top:16px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)}
 .import-drop{border:2px dashed var(--bd);border-radius:14px;padding:24px;text-align:center;color:var(--tl);cursor:pointer;transition:var(--transition)}
-.import-drop:hover,.import-drop.dragover{border-color:var(--pl);background:#f0f0ff}
+.import-drop:hover,.import-drop.dragover{border-color:var(--pl);background:#e8f5e9}
 .import-drop input{display:none}
 
 /* Loading */
@@ -266,9 +266,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="st"><div class="st-n" id="sWarn" style="color:var(--w)">-</div><div class="st-l">较缺</div></div>
       <div class="st"><div class="st-n" id="sLow" style="color:var(--d)">-</div><div class="st-l">急缺<10</div></div>
     </div>
-    <div id="lowStockAlert" style="display:none;margin-bottom:14px;padding:14px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fecaca;border-radius:14px">
-      <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:8px">🚨 急缺商品提醒</div>
-      <div id="lowStockList" style="font-size:13px;color:#b91c1c;line-height:1.8"></div>
+    <div id="lowStockAlert" style="display:none;margin-bottom:14px;padding:14px;background:linear-gradient(135deg,#fff3cd,#ffe0a0);border:1px solid #ffc107;border-radius:16px">
+      <div style="font-size:13px;font-weight:700;color:#856404;margin-bottom:8px">🚨 急缺商品提醒</div>
+      <div id="lowStockList" style="font-size:13px;color:#856404;line-height:1.8"></div>
     </div>
     <div class="sbar"><input id="sSearch" placeholder="搜索商品..." autocomplete="off"></div>
     <div id="invList"></div>
@@ -279,7 +279,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <div class="op-header">
       <button class="op-back" onclick="closeOp()">←</button>
       <div class="op-title" id="opTitle">入库</div>
-      <span class="op-badge" id="opBadge" style="background:#dcfce7;color:#166534">入库</span>
+      <span class="op-badge" id="opBadge" style="background:#d4edda;color:#2d5a3d">入库</span>
     </div>
     <div id="opRegSel"></div>
     <div id="opTransferReg" style="display:none">
@@ -479,7 +479,7 @@ function renderInv(){
   if(!curReg){el.innerHTML='<div class="empty"><div class="empty-icon">🗂️</div><div class="empty-t">请先在设置中添加地区</div></div>';return}
   if(items.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-t">该地区暂无库存</div></div>';return}
 
-  const colors=['#e0e7ff','#fce7f3','#d1fae5','#fef3c7','#e0f2fe','#f3e8ff','#fae8ff','#ecfccb'];
+  const colors=['#e8f5e9','#fce4ec','#e0f2f1','#fff8e1','#e8f5e9','#f3e5f5','#e8eaf6','#f1f8e9'];
   const icons=['📦','🏷️','📋','📌','🔖','📎','📒','🗂️'];
   el.innerHTML=items.map((it,idx)=>{
     const c=colors[idx%colors.length];const ic=icons[idx%icons.length];
@@ -584,7 +584,7 @@ function renderLog(){
     else if(isIn){typeLabel='📥 入库';typeClass='log-in'}
     else{typeLabel='📤 出库';typeClass='log-out'}
 
-    const userTag=b.userName?`<span style="display:inline-block;padding:2px 8px;background:#e0e7ff;border-radius:6px;font-size:10px;font-weight:600;color:var(--p)">👤 ${esc(b.userName)}</span>`:'';
+    const userTag=b.userName?`<span style="display:inline-block;padding:2px 8px;background:#e8f5e9;border-radius:8px;font-size:10px;font-weight:600;color:var(--pd)">👤 ${esc(b.userName)}</span>`:'';
 
     const itemsHtml=b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">→ ${it.quantity}</span></div>`).join(''):b.items.map(it=>{
       const sign=isIn||isTf?'+':'-';
@@ -663,10 +663,10 @@ function openOp(type){
   const regEl=document.getElementById('opRegSel');
 
   const configs={
-    in:{title:'入库操作',badge:'入库',bg:'#dcfce7',color:'#166534',label:'入库地区'},
-    out:{title:'出库操作',badge:'出库',bg:'#fee2e2',color:'#991b1b',label:'出库地区'},
-    fix:{title:'库存修正',badge:'修正',bg:'#fef9c3',color:'#854d0e',label:'修正地区'},
-    transfer:{title:'调货操作',badge:'调货',bg:'#e0f2fe',color:'#0c4a6e'}
+    in:{title:'入库操作',badge:'入库',bg:'#d4edda',color:'#2d5a3d',label:'入库地区'},
+    out:{title:'出库操作',badge:'出库',bg:'#f8d7da',color:'#8b3a3a',label:'出库地区'},
+    fix:{title:'库存修正',badge:'修正',bg:'#fff3cd',color:'#856404',label:'修正地区'},
+    transfer:{title:'调货操作',badge:'调货',bg:'#d1ecf1',color:'#0c5460'}
   };
   const cfg=configs[type];
   titleEl.textContent=cfg.title;
@@ -1315,7 +1315,7 @@ async function renderSettings(){
   html+=`<div style="margin-top:28px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
     <h3 style="font-size:16px;font-weight:700;margin-bottom:14px">💾 数据管理</h3>
     <button class="btn bp" onclick="exportCSV()" style="width:100%;margin-bottom:10px">📥 导出库存数据（CSV）</button>
-    <button class="btn" onclick="exportLogs()" style="width:100%;background:#e0e7ff;color:var(--p);margin-bottom:10px">📋 导出操作记录（CSV）</button>
+    <button class="btn" onclick="exportLogs()" style="width:100%;background:#e8f5e9;color:var(--pd);margin-bottom:10px">📋 导出操作记录（CSV）</button>
     ${admin?`<div class="import-area">
       <div style="font-size:13px;font-weight:600;margin-bottom:10px">📤 导入库存数据（CSV）</div>
       <div class="import-drop" id="importDrop" onclick="document.getElementById('importFile').click()">
