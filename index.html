@@ -259,17 +259,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <button class="act-btn act-transfer" onclick="openOp('transfer')"><span class="icon">🔄</span>调货</button>
       <button class="act-btn act-fix" onclick="openOp('fix')"><span class="icon">✏️</span>修正</button>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn" onclick="openBatchOp('in')" style="flex:1;background:#e8f5e9;color:#2d5a3d;font-size:13px;padding:10px;border-radius:14px">📋 批量入库</button>
+      <button class="btn" onclick="openBatchOp('out')" style="flex:1;background:#fce4ec;color:#8b3a3a;font-size:13px;padding:10px;border-radius:14px">📋 批量出库</button>
+    </div>
     <div class="reg-sel" id="regSel"></div>
     <div class="stats">
       <div class="st"><div class="st-n" id="sTotal">-</div><div class="st-l">商品种类</div></div>
-      <div class="st"><div class="st-n" id="sOk" style="color:var(--s)">-</div><div class="st-l">充足≥20</div></div>
+      <div class="st"><div class="st-n" id="sOk" style="color:var(--s)">-</div><div class="st-l">充足</div></div>
       <div class="st"><div class="st-n" id="sWarn" style="color:var(--w)">-</div><div class="st-l">较缺</div></div>
-      <div class="st"><div class="st-n" id="sLow" style="color:var(--d)">-</div><div class="st-l">急缺<10</div></div>
+      <div class="st"><div class="st-n" id="sLow" style="color:var(--d)">-</div><div class="st-l">急缺</div></div>
     </div>
     <div id="lowStockAlert" style="display:none;margin-bottom:14px;padding:14px;background:linear-gradient(135deg,#fff3cd,#ffe0a0);border:1px solid #ffc107;border-radius:16px">
       <div style="font-size:13px;font-weight:700;color:#856404;margin-bottom:8px">🚨 急缺商品提醒</div>
       <div id="lowStockList" style="font-size:13px;color:#856404;line-height:1.8"></div>
     </div>
+    <div class="reg-sel" id="homeCatSel"></div>
     <div class="sbar"><input id="sSearch" placeholder="搜索商品..." autocomplete="off"></div>
     <div id="invList"></div>
   </div>
@@ -323,6 +328,12 @@ A4纸 x5
 
   <!-- ===== 记录 ===== -->
   <div class="section" id="sec-log">
+    <div class="reg-sel" id="logDateSel">
+      <div class="reg-chip active" onclick="selLogDate('all')">全部</div>
+      <div class="reg-chip" onclick="selLogDate('today')">今天</div>
+      <div class="reg-chip" onclick="selLogDate('week')">本周</div>
+      <div class="reg-chip" onclick="selLogDate('month')">本月</div>
+    </div>
     <div class="log-toolbar">
       <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="log-select" id="logSelectAll" onchange="toggleSelectAll()"> 全选</label>
       <button class="btn bd" onclick="deleteSelectedLogs()" style="padding:8px 14px;font-size:12px">🗑️ 删除选中</button>
@@ -361,6 +372,10 @@ A4纸 x5
       <label class="fl">备注</label>
       <input class="fi" id="pNotes" placeholder="可选">
     </div>
+    <div class="fg">
+      <label class="fl">最低库存预警线</label>
+      <input class="fi" id="pThreshold" type="number" min="0" placeholder="默认 10">
+    </div>
     <div class="br">
       <button class="btn bc" onclick="closeMo('prodMo')">取消</button>
       <button class="btn bp" onclick="saveProd()">保存</button>
@@ -393,6 +408,31 @@ A4纸 x5
 
 <div class="tt" id="toast"></div>
 
+<!-- Batch Operation Modal -->
+<div class="mo" id="batchMo">
+  <div class="md">
+    <div class="mt" id="batchTitle">批量入库</div>
+    <div class="fg">
+      <label class="fl">选择地区</label>
+      <select class="fi" id="batchReg"></select>
+    </div>
+    <div class="fg">
+      <label class="fl">粘贴商品清单</label>
+      <textarea class="paste-area" id="batchPaste" placeholder="每行一个商品，例如：
+可乐 10
+A4纸 x5
+矿泉水*20"></textarea>
+    </div>
+    <div class="parse-result" id="batchParseResult"></div>
+    <div id="batchPreview" style="display:none;max-height:200px;overflow-y:auto;margin:10px 0"></div>
+    <div class="br">
+      <button class="btn bc" onclick="closeMo('batchMo')">取消</button>
+      <button class="btn" onclick="parseBatch()" style="background:#e8f5e9;color:#2d5a3d">🔍 识别</button>
+      <button class="btn bp" onclick="doBatchOp()">确认提交</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const U='https://dtjprxqxlybqrzwmvviq.supabase.co';
 const K='sb_publishable_X58fb-T-0_cZANnv5FVuCQ_sW3GyEfi';
@@ -407,7 +447,16 @@ let currentUser=null;
 let homeSearchQuery='';
 let logSearchQuery='';
 let prodSearchQuery='';
-let prodCurReg='all'; // 'all' or region id
+let prodCurReg='all';
+let homeCategory='all';
+let prodCategory='all';
+let logDateFilter='all'; // 'all','today','week','month'
+
+// ===== THRESHOLDS (localStorage) =====
+function loadThresholds(){try{return JSON.parse(localStorage.getItem('inv_thresholds')||'{}')}catch(e){return{}}}
+function saveThresholds(t){localStorage.setItem('inv_thresholds',JSON.stringify(t))}
+function getThreshold(pid){const t=loadThresholds();return t[pid]||10}
+function setThreshold(pid,val){const t=loadThresholds();if(val<=0)delete t[pid];else t[pid]=val;saveThresholds(t)}
 
 // ===== API =====
 async function api(p,o={}){
@@ -448,30 +497,42 @@ function renderRegSel(){
 
 function selReg(id){curReg=id;renderRegSel();renderInv()}
 
+function renderCatSel(prefix,curVal,onChange){
+  const cats=[...new Set(products.map(p=>p.category).filter(Boolean))].sort();
+  if(cats.length===0)return '';
+  let html=`<div class="reg-chip ${curVal==='all'?'active':''}" onclick="${onChange}('all')">全部分类</div>`;
+  html+=cats.map(c=>`<div class="reg-chip ${curVal===c?'active':''}" onclick="${onChange}('${esc(c)}')">${esc(c)}</div>`).join('');
+  return html;
+}
+function selHomeCat(c){homeCategory=c;document.getElementById('homeCatSel').innerHTML=renderCatSel('home',homeCategory,'selHomeCat');renderInv()}
+function selProdCat(c){prodCategory=c;renderProd()}
+
 function renderInv(){
   const el=document.getElementById('invList');
+  document.getElementById('homeCatSel').innerHTML=renderCatSel('home',homeCategory,'selHomeCat');
   const items=inv.filter(i=>i.region_id===curReg).map(i=>{
     const p=products.find(pp=>pp.id===i.product_id);
     return{...i,prod:p};
   }).filter(i=>i.prod).filter(i=>{
     if(homeSearchQuery&&!i.prod.name.toLowerCase().includes(homeSearchQuery)&&!(i.prod.category||'').toLowerCase().includes(homeSearchQuery))return false;
+    if(homeCategory!=='all'&&i.prod.category!==homeCategory)return false;
     return true;
   }).sort((a,b)=>a.prod.name.localeCompare(b.prod.name));
 
-  const okCount=items.filter(i=>i.quantity>=20).length;
-  const warnCount=items.filter(i=>i.quantity>=10&&i.quantity<20).length;
-  const lowCount=items.filter(i=>i.quantity<10).length;
+  const okCount=items.filter(i=>{const th=getThreshold(i.product_id);return i.quantity>=th*2}).length;
+  const warnCount=items.filter(i=>{const th=getThreshold(i.product_id);return i.quantity>=th&&i.quantity<th*2}).length;
+  const lowCount=items.filter(i=>i.quantity<getThreshold(i.product_id)).length;
   document.getElementById('sTotal').textContent=items.length;
   document.getElementById('sOk').textContent=okCount;
   document.getElementById('sWarn').textContent=warnCount;
   document.getElementById('sLow').textContent=lowCount;
 
-  const lowItems=items.filter(i=>i.quantity<10).sort((a,b)=>a.quantity-b.quantity);
+  const lowItems=items.filter(i=>i.quantity<getThreshold(i.product_id)).sort((a,b)=>a.quantity-b.quantity);
   const alertEl=document.getElementById('lowStockAlert');
   const alertList=document.getElementById('lowStockList');
   if(lowItems.length>0){
     alertEl.style.display='';
-    alertList.innerHTML=lowItems.map(it=>`<span style="display:inline-block;margin-right:10px;margin-bottom:4px">${esc(it.prod.name)} <b style="color:var(--d)">(${it.quantity})</b></span>`).join('');
+    alertList.innerHTML=lowItems.map(it=>`<span style="display:inline-block;margin-right:10px;margin-bottom:4px">${esc(it.prod.name)} <b style="color:var(--d)">(${it.quantity}/${getThreshold(it.product_id)})</b></span>`).join('');
   }else{
     alertEl.style.display='none';
   }
@@ -483,12 +544,13 @@ function renderInv(){
   const icons=['📦','🏷️','📋','📌','🔖','📎','📒','🗂️'];
   el.innerHTML=items.map((it,idx)=>{
     const c=colors[idx%colors.length];const ic=icons[idx%icons.length];
-    const qtyClass=it.quantity<10?'ql':it.quantity<20?'qm':'qk';
+    const th=getThreshold(it.product_id);
+    const qtyClass=it.quantity<th?'ql':it.quantity<th*2?'qm':'qk';
     return`<div class="card">
       <div class="card-icon" style="background:${c}">${ic}</div>
       <div class="card-info">
         <div class="card-name">${esc(it.prod.name)}</div>
-        <div class="card-meta">${it.prod.category?esc(it.prod.category)+' · ':''}${esc(it.prod.unit||'个')}</div>
+        <div class="card-meta">${it.prod.category?esc(it.prod.category)+' · ':''}${esc(it.prod.unit||'个')} · 预警线${th}</div>
       </div>
       <div class="card-qty">
         <div class="qn ${qtyClass}">${it.quantity}</div>
@@ -510,12 +572,20 @@ function selProdReg(id){prodCurReg=id;renderProdRegSel();renderProd()}
 function renderProd(){
   const el=document.getElementById('prodList');
   renderProdRegSel();
+  // Category filter
+  const catEl=document.createElement('div');
+  catEl.className='reg-sel';
+  catEl.style.marginBottom='10px';
+  catEl.innerHTML=renderCatSel('prod',prodCategory,'selProdCat');
   const ps=products.filter(p=>{
     if(prodSearchQuery&&!p.name.toLowerCase().includes(prodSearchQuery))return false;
+    if(prodCategory!=='all'&&p.category!==prodCategory)return false;
     return true;
   });
-  if(ps.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-t">暂无商品<br>点击 + 添加</div></div>';return}
-  el.innerHTML=ps.map(p=>{
+  if(ps.length===0){el.innerHTML='';el.appendChild(catEl);el.innerHTML+='<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-t">暂无商品<br>点击 + 添加</div></div>';return}
+  let html=catEl.outerHTML;
+  html+=ps.map(p=>{
+    const th=getThreshold(p.id);
     let regionInfo='';
     if(prodCurReg==='all'){
       const total=inv.filter(i=>i.product_id===p.id).reduce((s,i)=>s+i.quantity,0);
@@ -523,17 +593,26 @@ function renderProd(){
     }else{
       const invItem=inv.find(i=>i.product_id===p.id&&i.region_id===prodCurReg);
       const qty=invItem?invItem.quantity:0;
-      const qtyClass=qty<10?'ql':qty<20?'qm':'qk';
+      const qtyClass=qty<th?'ql':qty<th*2?'qm':'qk';
       regionInfo=`<div class="qn ${qtyClass}">${qty}</div><div class="qu">${esc(p.unit||'个')}</div>`;
     }
     return`<div class="card" onclick="openProdModal('${p.id}')">
       <div class="card-info">
         <div class="card-name">${esc(p.name)}</div>
-        <div class="card-meta">${p.category?esc(p.category)+' · ':''}${esc(p.unit||'个')}</div>
+        <div class="card-meta">${p.category?esc(p.category)+' · ':''}${esc(p.unit||'个')} · 预警线${th}</div>
       </div>
       <div class="card-qty">${regionInfo}</div>
     </div>`;
   }).join('');
+  el.innerHTML=html;
+}
+
+function selLogDate(f){
+  logDateFilter=f;
+  document.querySelectorAll('#logDateSel .reg-chip').forEach(c=>{
+    c.classList.toggle('active',c.textContent===(f==='all'?'全部':f==='today'?'今天':f==='week'?'本周':'本月'));
+  });
+  renderLog();
 }
 
 function renderLog(){
@@ -542,7 +621,15 @@ function renderLog(){
   document.getElementById('logSelectAll').checked=false;
   document.getElementById('logSelectCount').textContent='';
 
+  const now=new Date();
   let ls=logs.filter(l=>{
+    // Date filter
+    if(logDateFilter!=='all'){
+      const d=new Date(l.created_at);
+      if(logDateFilter==='today'){if(d.toDateString()!==now.toDateString())return false}
+      else if(logDateFilter==='week'){const weekAgo=new Date(now-7*86400000);if(d<weekAgo)return false}
+      else if(logDateFilter==='month'){if(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear())return false}
+    }
     if(logSearchQuery){
       const p=products.find(pp=>pp.id===l.product_id);
       const r=regions.find(rr=>rr.id===l.region_id);
@@ -977,6 +1064,7 @@ function openProdModal(id){
     document.getElementById('pUnit').value=p.unit||'个';
     document.getElementById('pCat').value=p.category||'';
     document.getElementById('pNotes').value=p.notes||'';
+    document.getElementById('pThreshold').value=getThreshold(id);
     document.getElementById('pDelBtn').style.display='block';
   }else{
     document.getElementById('prodTitle').textContent='添加商品';
@@ -985,6 +1073,7 @@ function openProdModal(id){
     document.getElementById('pUnit').value='个';
     document.getElementById('pCat').value='';
     document.getElementById('pNotes').value='';
+    document.getElementById('pThreshold').value='';
     document.getElementById('pDelBtn').style.display='none';
   }
   openMo('prodMo');
@@ -994,16 +1083,19 @@ async function saveProd(){
   const name=document.getElementById('pName').value.trim();
   if(!name){toast('请输入商品名称');return}
   const data={name,unit:document.getElementById('pUnit').value.trim()||'个',category:document.getElementById('pCat').value.trim(),notes:document.getElementById('pNotes').value.trim()};
+  const thVal=parseInt(document.getElementById('pThreshold').value);
   try{
     const eid=document.getElementById('pEditId').value;
     if(eid){
       await api(`products?id=eq.${eid}`,{method:'PATCH',body:JSON.stringify(data)});
       const idx=products.findIndex(p=>p.id===eid);
       if(idx>=0)Object.assign(products[idx],data);
+      if(!isNaN(thVal))setThreshold(eid,thVal);
       toast('已更新 ✅');
     }else{
       const res=await api('products',{method:'POST',body:JSON.stringify(data)});
       products.push(res[0]);
+      if(!isNaN(thVal)&&res[0])setThreshold(res[0].id,thVal);
       toast('已添加 ✅');
     }
     closeMo('prodMo');
@@ -1263,6 +1355,117 @@ function parsePaste(){
   }
 }
 
+// ===== BATCH OPERATION =====
+let batchType='in';
+let batchPicks={};
+
+function openBatchOp(type){
+  if(regions.length<1){toast('请先在设置中添加地区');return}
+  if(products.length<1){toast('请先在商品页添加商品');return}
+  batchType=type;
+  batchPicks={};
+  document.getElementById('batchTitle').textContent=type==='in'?'批量入库':'批量出库';
+  document.getElementById('batchReg').innerHTML=regions.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('');
+  document.getElementById('batchPaste').value='';
+  document.getElementById('batchParseResult').innerHTML='';
+  document.getElementById('batchPreview').style.display='none';
+  document.getElementById('batchPreview').innerHTML='';
+  openMo('batchMo');
+}
+
+function parseBatch(){
+  const text=document.getElementById('batchPaste').value.trim();
+  if(!text){toast('请粘贴文本内容');return []}
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  const matched=[];
+  const unmatched=[];
+  lines.forEach(line=>{
+    let name='',qty=0;
+    let m=line.match(/^(.+?)[\s]*[xX*×][\s]*(\d+)/);
+    if(m){name=m[1].trim();qty=parseInt(m[2]);}
+    if(!name){m=line.match(/^(.+?)\s+(\d+)[^\d]*$/);if(m){name=m[1].trim();qty=parseInt(m[2]);}}
+    if(!name){m=line.match(/^(\d+)[^\d]*\s+(.+)$/);if(m){qty=parseInt(m[1]);name=m[2].trim();}}
+    if(!name){name=line.replace(/[\s]+$/,'').trim();qty=0;}
+    if(name){
+      const lc=name.toLowerCase();
+      let best=null,bestScore=0;
+      products.forEach(p=>{
+        const pn=p.name.toLowerCase();
+        if(pn===lc){best=p;bestScore=100;return;}
+        if(pn.includes(lc)||lc.includes(pn)){const score=Math.min(lc.length,pn.length)/Math.max(lc.length,pn.length)*80;if(score>bestScore){best=p;bestScore=score;}}
+      });
+      if(best&&bestScore>=40)matched.push({product:best,qty});
+      else unmatched.push({name,qty});
+    }
+  });
+  // Show result
+  const el=document.getElementById('batchParseResult');
+  let html='';
+  if(matched.length>0){
+    html+=`<div class="parse-ok">✅ 识别到 ${matched.length} 个商品</div>`;
+    matched.forEach(m=>{html+=`<div style="padding:2px 0">· ${esc(m.product.name)} → ${m.qty>0?m.qty+' '+esc(m.product.unit||'个'):'未指定数量'}</div>`;});
+  }
+  if(unmatched.length>0){
+    html+=`<div class="parse-fail" style="margin-top:6px">⚠️ 未匹配 ${unmatched.length} 个：</div>`;
+    unmatched.forEach(u=>{html+=`<div style="padding:2px 0">· ${esc(u.name)}</div>`;});
+  }
+  el.innerHTML=html;
+  // Store picks
+  batchPicks={};
+  matched.forEach(m=>{if(m.qty>0)batchPicks[m.product.id]=m.qty;});
+  // Show preview
+  if(matched.length>0){
+    const pvEl=document.getElementById('batchPreview');
+    pvEl.style.display='';
+    pvEl.innerHTML=matched.map(m=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd);font-size:13px"><span>${esc(m.product.name)}</span><span style="font-weight:700">${batchType==='in'?'+':'-'}${m.qty} ${esc(m.product.unit||'个')}</span></div>`).join('');
+  }
+  return matched;
+}
+
+async function doBatchOp(){
+  const matched=parseBatch();
+  if(matched.length===0){toast('请先粘贴并识别商品');return}
+  const regId=document.getElementById('batchReg').value;
+  const regName=regions.find(r=>r.id===regId)?.name||'';
+  const userName=currentUser?currentUser.name:'未知';
+  const batchId='b'+Date.now()+Math.random().toString(36).substr(2,4);
+  const summary=[];
+  try{
+    for(const[pid,qty]of Object.entries(batchPicks)){
+      if(batchType==='out'){
+        const invItem=inv.find(i=>i.product_id===pid&&i.region_id===regId);
+        if(!invItem||invItem.quantity<qty){
+          const p=products.find(pp=>pp.id===pid);
+          toast(`${p?p.name:'商品'}库存不足`);return;
+        }
+      }
+    }
+    for(const[pid,qty]of Object.entries(batchPicks)){
+      let invItem=inv.find(i=>i.product_id===pid&&i.region_id===regId);
+      if(batchType==='in'){
+        if(invItem){await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:invItem.quantity+qty})});invItem.quantity+=qty;}
+        else{const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,quantity:qty})});inv.push(res[0]);}
+      }else{
+        await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:invItem.quantity-qty})});invItem.quantity-=qty;
+      }
+      await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:batchType,quantity:qty,note:`[user:${userName}] [batch:${batchId}]`})});
+      const p=products.find(pp=>pp.id===pid);
+      summary.push({name:p?p.name:'未知',qty,unit:p?p.unit:'个'});
+    }
+    closeMo('batchMo');
+    // Show summary
+    const icon=batchType==='in'?'📥':'📤';
+    const title=batchType==='in'?'批量入库完成':'批量出库完成';
+    document.getElementById('doneIcon').textContent=icon;
+    document.getElementById('doneTitle').textContent=title;
+    document.getElementById('doneInfo').textContent=`地区：${regName}`;
+    document.getElementById('doneList').innerHTML=summary.map(it=>`<div class="done-item"><span>${esc(it.name)}</span><span style="font-weight:700">${batchType==='in'?'+':'-'}${it.qty} ${esc(it.unit)}</span></div>`).join('');
+    document.getElementById('doneOverlay').classList.add('show');
+    [products,inv,logs]=await Promise.all([api('products?order=name'),api('inventory'),api('stock_logs?order=created_at.desc&limit=500')]);
+    renderAll();
+  }catch(e){toast('操作失败: '+e.message)}
+}
+
 // ===== SETTINGS =====
 async function renderSettings(){
   const el=document.getElementById('settingsContent');
@@ -1327,18 +1530,38 @@ async function renderSettings(){
     </div>`:''}
   </div>`;
 
+  // Threshold management
+  html+=`<div style="margin-top:20px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:14px">🔔 库存预警线设置</h3>
+    <div style="font-size:12px;color:var(--tl);margin-bottom:12px">设置每个商品的最低库存预警线，低于此值将标记为急缺。默认为 10。</div>
+    <div id="thresholdList"></div>
+  </div>`;
+
   html+=`<div style="margin-top:20px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
     <div style="font-size:13px;color:var(--tl);line-height:1.7">
       <b style="color:var(--t)">📖 使用说明</b><br>
       • <b>首页</b>：查看库存概览，点击「入库/出库/调货/修正」操作<br>
-      • <b>商品</b>：管理商品目录（添加/编辑/删除），可按地区查看库存<br>
-      • <b>记录</b>：查看所有操作记录，支持回退误操作<br>
-      • <b>设置</b>：管理地区、员工、导入导出数据<br>
-      • <b>快速粘贴</b>：在操作页面可粘贴文本自动识别商品
+      • <b>批量入库/出库</b>：粘贴商品清单快速操作<br>
+      • <b>商品</b>：管理商品目录，设置预警线，按地区查看库存<br>
+      • <b>记录</b>：查看操作记录，按日期筛选，支持回退误操作<br>
+      • <b>设置</b>：管理地区、员工、预警线、导入导出数据
     </div>
   </div>`;
 
   el.innerHTML=html;
+
+  // Render threshold list
+  const thEl=document.getElementById('thresholdList');
+  if(thEl&&products.length>0){
+    const thData=loadThresholds();
+    thEl.innerHTML=products.map(p=>{
+      const th=thData[p.id]||10;
+      return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">
+        <span style="flex:1;font-size:13px;font-weight:600">${esc(p.name)}</span>
+        <input type="number" min="0" value="${th}" style="width:60px;padding:6px 8px;border:1.5px solid var(--bd);border-radius:10px;font-size:13px;text-align:center" onchange="setThreshold('${p.id}',parseInt(this.value)||0);toast('已保存')">
+      </div>`;
+    }).join('');
+  }
 
   // Re-bind drag & drop after render
   const importDrop=document.getElementById('importDrop');
