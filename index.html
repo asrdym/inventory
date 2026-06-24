@@ -3,202 +3,231 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>库存管理</title>
+<title>库存管理系统</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--p:#4f46e5;--pl:#818cf8;--d:#ef4444;--s:#22c55e;--w:#f59e0b;--o:#f97316;--bg:#f8fafc;--card:#fff;--t:#1e293b;--tl:#64748b;--bd:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.1);--shl:0 4px 12px rgba(0,0,0,.15)}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;padding-bottom:70px;-webkit-tap-highlight-color:transparent}
+:root{--p:#4f46e5;--pl:#818cf8;--pd:#3730a3;--d:#ef4444;--s:#22c55e;--w:#f59e0b;--o:#f97316;--bg:#f1f5f9;--card:#fff;--t:#1e293b;--tl:#64748b;--bd:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.08);--shl:0 4px 16px rgba(0,0,0,.12);--radius:14px;--transition:all .2s ease}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;padding-bottom:80px;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 
-.hdr{background:var(--p);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:100;box-shadow:var(--shl)}
-.hdr h1{font-size:18px;font-weight:700}
+/* Header */
+.hdr{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:14px 16px;position:sticky;top:0;z-index:100;box-shadow:var(--shl)}
+.hdr h1{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.hdr-sub{font-size:11px;opacity:.8;margin-top:2px}
 
+/* Tabs */
 .tabs{display:flex;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:50px;z-index:99}
-.tab{flex:1;padding:10px 0;text-align:center;font-size:13px;font-weight:600;color:var(--tl);border-bottom:2px solid transparent;cursor:pointer}
+.tab{flex:1;padding:12px 0;text-align:center;font-size:13px;font-weight:600;color:var(--tl);border-bottom:2.5px solid transparent;cursor:pointer;transition:var(--transition);position:relative}
+.tab:active{background:var(--bg)}
 .tab.active{color:var(--p);border-bottom-color:var(--p)}
+.tab .tab-icon{font-size:16px;display:block;margin-bottom:2px}
 
-.section{display:none;padding:12px 14px}
+.section{display:none;padding:14px 16px;animation:fadeIn .25s ease}
 .section.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* Big action buttons */
-.action-bar{display:flex;gap:8px;margin-bottom:14px}
-.act-btn{flex:1;padding:14px 0;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:var(--sh);transition:transform .15s}
-.act-btn:active{transform:scale(.95)}
-.act-btn .icon{font-size:24px}
-.act-in{background:#dcfce7;color:#166534}
-.act-out{background:#fee2e2;color:#991b1b}
-.act-transfer{background:#e0f2fe;color:#0c4a6e}
-.act-fix{background:#fef9c3;color:#854d0e}
+/* Action buttons */
+.action-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.act-btn{padding:18px 0;border-radius:var(--radius);border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--sh);transition:var(--transition)}
+.act-btn:active{transform:scale(.96);box-shadow:none}
+.act-btn .icon{font-size:28px}
+.act-in{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#166534}
+.act-out{background:linear-gradient(135deg,#fee2e2,#fecaca);color:#991b1b}
+.act-transfer{background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0c4a6e}
+.act-fix{background:linear-gradient(135deg,#fef9c3,#fde68a);color:#854d0e}
 
-/* Region selector */
-.reg-sel{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
+/* Region chips */
+.reg-sel{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
 .reg-sel::-webkit-scrollbar{display:none}
-.reg-chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--bd);background:var(--card);color:var(--tl);cursor:pointer;transition:all .2s;white-space:nowrap}
-.reg-chip.active{background:var(--p);color:#fff;border-color:var(--p)}
+.reg-chip{flex-shrink:0;padding:7px 16px;border-radius:22px;font-size:13px;font-weight:600;border:1.5px solid var(--bd);background:var(--card);color:var(--tl);cursor:pointer;transition:var(--transition);white-space:nowrap}
+.reg-chip:active{transform:scale(.95)}
+.reg-chip.active{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 2px 8px rgba(79,70,229,.3)}
 
 /* Stats */
-.stats{display:flex;gap:8px;margin-bottom:12px}
-.st{flex:1;background:var(--card);border-radius:12px;padding:10px;text-align:center;box-shadow:var(--sh)}
-.st-n{font-size:20px;font-weight:700;color:var(--p)}
-.st-l{font-size:10px;color:var(--tl);margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.st{background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:var(--sh)}
+.st-n{font-size:22px;font-weight:800}
+.st-l{font-size:10px;color:var(--tl);margin-top:3px;font-weight:500}
 
 /* Search */
-.sbar{margin-bottom:12px}
-.sbar input{width:100%;padding:10px 12px 10px 36px;border:2px solid var(--bd);border-radius:12px;font-size:14px;outline:none;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 10px center}
-.sbar input:focus{border-color:var(--pl)}
+.sbar{margin-bottom:14px;position:relative}
+.sbar input{width:100%;padding:11px 14px 11px 40px;border:2px solid var(--bd);border-radius:12px;font-size:14px;outline:none;background:var(--card);transition:var(--transition)}
+.sbar input:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.sbar::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
 
 /* Cards */
-.card{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
-.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px;transition:var(--transition)}
+.card:active{transform:scale(.99)}
+.card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .card-info{flex:1;min-width:0}
 .card-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-meta{font-size:11px;color:var(--tl);margin-top:1px}
+.card-meta{font-size:11px;color:var(--tl);margin-top:2px}
 .card-qty{text-align:right;flex-shrink:0}
-.qn{font-size:18px;font-weight:700}
-.qu{font-size:10px;color:var(--tl)}
+.qn{font-size:20px;font-weight:800}
+.qu{font-size:10px;color:var(--tl);font-weight:500}
 .ql{color:var(--d)}.qm{color:var(--w)}.qk{color:var(--s)}
 
 /* Operation page */
-.op-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.op-back{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.op-title{font-size:17px;font-weight:700}
-.op-badge{padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700}
+.op-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.op-back{width:38px;height:38px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.op-back:active{background:var(--bg);transform:scale(.9)}
+.op-title{font-size:18px;font-weight:700;flex:1}
+.op-badge{padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700}
 
-/* Pick row in operation */
-.pick-row{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+/* Pick row */
+.pick-row{background:var(--card);border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
 .pick-name{flex:1;font-size:14px;font-weight:600}
-.pick-stock{font-size:11px;color:var(--tl);margin-top:2px}
-.pick-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.pick-btn{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.pick-btn:active{background:var(--bg)}
-.pick-num{font-size:17px;font-weight:700;min-width:32px;text-align:center}
+.pick-stock{font-size:11px;color:var(--tl);margin-top:3px}
+.pick-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pick-btn{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);color:var(--t)}
+.pick-btn:active{background:var(--bg);transform:scale(.9)}
+.pick-btn:disabled{opacity:.3;cursor:not-allowed}
+.pick-num{font-size:18px;font-weight:800;min-width:36px;text-align:center}
 .pick-zero{color:var(--bd)}
 
-/* Transfer specific */
+/* Transfer */
 .transfer-reg{display:flex;gap:8px;margin-bottom:14px;align-items:center}
-.transfer-reg .arrow{font-size:20px;color:var(--tl)}
+.transfer-reg .arrow{font-size:22px;color:var(--tl);flex-shrink:0}
 
 /* Save bar */
-.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:12px 16px;box-shadow:0 -2px 10px rgba(0,0,0,.1);z-index:200;display:none}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:14px 16px;box-shadow:0 -4px 16px rgba(0,0,0,.1);z-index:200;display:none;backdrop-filter:blur(10px)}
 .save-bar.show{display:block}
-.save-btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;font-weight:700;cursor:pointer;background:var(--p);color:#fff}
-.save-btn:active{opacity:.8}
+.save-btn{width:100%;padding:15px;border-radius:14px;border:none;font-size:16px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;transition:var(--transition);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.save-btn:active{opacity:.8;transform:scale(.98)}
+.save-btn:disabled{opacity:.5;cursor:not-allowed}
 
 /* FAB */
-.fab{position:fixed;bottom:20px;right:16px;width:52px;height:52px;border-radius:14px;background:var(--p);color:#fff;border:none;font-size:26px;box-shadow:var(--shl);cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center}
+.fab{position:fixed;bottom:20px;right:16px;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;font-size:28px;box-shadow:0 4px 16px rgba(79,70,229,.4);cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
 .fab:active{transform:scale(.9)}
 
 /* Modal */
-.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end;justify-content:center}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
 .mo.show{display:flex}
-.md{background:var(--card);width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:18px;max-height:90vh;overflow-y:auto;animation:su .3s ease-out}
+.md{background:var(--card);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease-out}
 @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.mt{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mt{font-size:18px;font-weight:700;margin-bottom:18px;text-align:center}
 .fg{margin-bottom:14px}
-.fl{display:block;font-size:12px;font-weight:600;color:var(--tl);margin-bottom:5px}
-.fi{width:100%;padding:11px 12px;border:2px solid var(--bd);border-radius:10px;font-size:15px;outline:none;background:var(--bg)}
-.fi:focus{border-color:var(--pl)}
-.fr{display:flex;gap:8px}.fr .fg{flex:1}
-.br{display:flex;gap:8px;margin-top:16px}
-.btn{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer}
-.btn:active{opacity:.8}
-.bp{background:var(--p);color:#fff}.bc{background:var(--bg);color:var(--tl)}.bd{background:var(--d);color:#fff}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--tl);margin-bottom:6px}
+.fi{width:100%;padding:12px;border:2px solid var(--bd);border-radius:12px;font-size:15px;outline:none;background:var(--bg);transition:var(--transition)}
+.fi:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.fr{display:flex;gap:10px}.fr .fg{flex:1}
+.br{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:var(--transition)}
+.btn:active{opacity:.8;transform:scale(.98)}
+.bp{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;box-shadow:0 2px 8px rgba(79,70,229,.2)}
+.bc{background:var(--bg);color:var(--tl)}.bd{background:var(--d);color:#fff}
 
 /* Log */
-.log-card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:var(--sh)}
-.log-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.log-type{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px}
+.log-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.log-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.log-type{font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px}
 .log-in{background:#dcfce7;color:#166534}.log-out{background:#fee2e2;color:#991b1b}.log-tf{background:#e0f2fe;color:#0c4a6e}.log-fix{background:#fef9c3;color:#854d0e}
 .log-time{font-size:11px;color:var(--tl)}
-.log-body{font-size:13px;line-height:1.6}
+.log-body{font-size:13px;line-height:1.7}
 .log-body b{font-weight:600}
-.log-undo{margin-top:8px;padding:5px 12px;border-radius:8px;border:1.5px solid var(--bd);background:var(--card);font-size:12px;color:var(--p);cursor:pointer;font-weight:600}
-.log-undo:active{opacity:.7}
+.log-undo{margin-top:10px;padding:6px 14px;border-radius:10px;border:1.5px solid var(--bd);background:var(--card);font-size:12px;color:var(--p);cursor:pointer;font-weight:600;transition:var(--transition)}
+.log-undo:active{opacity:.7;background:var(--bg)}
 .log-reverted{opacity:.5;text-decoration:line-through}
 
 /* Confirm */
-.co{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center}
+.co{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .co.show{display:flex}
-.cb{background:var(--card);border-radius:16px;padding:20px;width:85%;max-width:300px;text-align:center}
-.ct{font-size:15px;margin-bottom:16px;line-height:1.5}
+.cb{background:var(--card);border-radius:18px;padding:24px;width:85%;max-width:320px;text-align:center;animation:slideUp .2s ease-out}
+.ct{font-size:15px;margin-bottom:18px;line-height:1.6}
 
 /* Done summary */
-.done-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center}
+.done-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .done-overlay.show{display:flex}
-.done-box{background:var(--card);border-radius:18px;padding:20px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto}
-.done-icon{font-size:48px;text-align:center;margin-bottom:8px}
-.done-title{font-size:17px;font-weight:700;text-align:center;margin-bottom:14px}
-.done-list{margin-bottom:16px}
-.done-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.done-box{background:var(--card);border-radius:20px;padding:24px;width:90%;max-width:400px;max-height:80vh;overflow-y:auto;animation:slideUp .3s ease-out}
+.done-icon{font-size:52px;text-align:center;margin-bottom:8px}
+.done-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:14px}
+.done-list{margin-bottom:18px}
+.done-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);font-size:13px}
 .done-item:last-child{border-bottom:none}
 
 /* Region manage */
-.rm-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px}
+.rm-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px}
 .rm-name{font-size:14px;font-weight:600}
-.rm-del{width:30px;height:30px;border-radius:8px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer}
-
+.rm-del{width:32px;height:32px;border-radius:10px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer;transition:var(--transition)}
+.rm-del:active{transform:scale(.9)}
 
 /* Log selection */
-.log-toolbar{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.log-toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
 .log-toolbar .btn{flex:none;padding:8px 14px;font-size:12px}
 .log-select{width:18px;height:18px;accent-color:var(--p);cursor:pointer}
-.log-card-wrap{display:flex;align-items:flex-start;gap:8px}
+.log-card-wrap{display:flex;align-items:flex-start;gap:10px}
 .log-card-wrap .log-card{flex:1}
 
 /* Empty */
-.empty{text-align:center;padding:40px 16px;color:var(--tl)}
-.empty-icon{font-size:40px;margin-bottom:8px}
-.empty-t{font-size:14px}
+.empty{text-align:center;padding:48px 16px;color:var(--tl)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-t{font-size:14px;line-height:1.6}
 
 /* Toast */
-.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;transition:transform .3s;white-space:nowrap}
+.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--t);color:#fff;padding:12px 24px;border-radius:12px;font-size:13px;z-index:999;transition:transform .3s ease;white-space:nowrap;box-shadow:var(--shl)}
 .tt.show{transform:translateX(-50%) translateY(0)}
 
-
 /* Smart paste */
-.paste-toggle{display:flex;gap:8px;margin-bottom:10px}
-.paste-btn{flex:1;padding:10px;border:2px dashed var(--pl);border-radius:12px;background:#f0f0ff;color:var(--p);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
-.paste-wrap{display:none;margin-bottom:10px}
+.paste-toggle{display:flex;gap:8px;margin-bottom:12px}
+.paste-btn{flex:1;padding:12px;border:2px dashed var(--pl);border-radius:14px;background:#f0f0ff;color:var(--p);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:var(--transition)}
+.paste-btn:active{background:#e0e0ff}
+.paste-wrap{display:none;margin-bottom:12px}
 .paste-wrap.show{display:block}
-.paste-area{width:100%;height:120px;padding:10px;border:2px solid var(--bd);border-radius:12px;font-size:14px;outline:none;background:var(--bg);resize:none;font-family:inherit}
-.paste-area:focus{border-color:var(--pl)}
-.parse-result{margin-top:8px;font-size:12px;color:var(--tl)}
+.paste-area{width:100%;height:120px;padding:12px;border:2px solid var(--bd);border-radius:14px;font-size:14px;outline:none;background:var(--bg);resize:none;font-family:inherit;transition:var(--transition)}
+.paste-area:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.parse-result{margin-top:10px;font-size:12px;color:var(--tl)}
 .parse-ok{color:var(--s)}.parse-fail{color:var(--d)}
 
-
 /* Login */
-.login-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--p);padding:20px}
-.login-box{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:var(--shl)}
-.login-logo{font-size:40px;text-align:center;margin-bottom:8px}
-.login-title{font-size:20px;font-weight:700;text-align:center;margin-bottom:20px;color:var(--t)}
-.login-select{width:100%;padding:12px;border:2px solid var(--bd);border-radius:12px;font-size:16px;outline:none;background:var(--bg);margin-bottom:12px}
-.login-pin{width:100%;padding:12px;border:2px solid var(--bd);border-radius:12px;font-size:24px;text-align:center;letter-spacing:12px;outline:none;background:var(--bg);margin-bottom:16px}
-.login-pin:focus{border-color:var(--pl)}
-.login-btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;font-weight:700;background:var(--p);color:#fff;cursor:pointer}
-.login-btn:active{opacity:.8}
+.login-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--p),var(--pd));padding:20px}
+.login-box{background:var(--card);border-radius:24px;padding:28px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.login-logo{font-size:48px;text-align:center;margin-bottom:8px}
+.login-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px;color:var(--t)}
+.login-sub{font-size:13px;color:var(--tl);text-align:center;margin-bottom:24px}
+.login-select{width:100%;padding:13px;border:2px solid var(--bd);border-radius:12px;font-size:16px;outline:none;background:var(--bg);margin-bottom:12px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.login-pin{width:100%;padding:14px;border:2px solid var(--bd);border-radius:12px;font-size:28px;text-align:center;letter-spacing:14px;outline:none;background:var(--bg);margin-bottom:16px;transition:var(--transition)}
+.login-pin:focus{border-color:var(--pl);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.login-btn{width:100%;padding:15px;border-radius:14px;border:none;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;cursor:pointer;transition:var(--transition);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.login-btn:active{opacity:.8;transform:scale(.98)}
 .login-err{color:var(--d);font-size:13px;text-align:center;margin-bottom:10px;display:none}
-.login-user{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--card);border-radius:10px;font-size:12px;color:var(--tl);margin-bottom:10px;box-shadow:var(--sh)}
+.login-user{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-radius:12px;font-size:12px;color:var(--tl);margin-bottom:12px;box-shadow:var(--sh)}
 .login-user b{color:var(--t);font-size:13px}
 .login-logout{margin-left:auto;color:var(--d);cursor:pointer;font-weight:600}
 
 /* Employee manage */
-.emp-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px}
+.emp-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px}
 .emp-name{font-size:14px;font-weight:600}
-.emp-del{width:30px;height:30px;border-radius:8px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer}
+.emp-del{width:32px;height:32px;border-radius:10px;border:none;background:#fee2e2;color:var(--d);font-size:16px;cursor:pointer;transition:var(--transition)}
+.emp-del:active{transform:scale(.9)}
+
+/* Import area */
+.import-area{margin-top:16px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)}
+.import-drop{border:2px dashed var(--bd);border-radius:14px;padding:24px;text-align:center;color:var(--tl);cursor:pointer;transition:var(--transition)}
+.import-drop:hover,.import-drop.dragover{border-color:var(--pl);background:#f0f0ff}
+.import-drop input{display:none}
 
 /* Loading */
-.ld{display:flex;justify-content:center;padding:30px}
-.sp{width:28px;height:28px;border:3px solid var(--bd);border-top-color:var(--p);border-radius:50%;animation:sp .8s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
+.ld{display:flex;justify-content:center;padding:40px}
+.sp{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(min-width:640px){
+  .section{padding:20px 24px}
+  .action-bar{grid-template-columns:repeat(4,1fr)}
+  .stats{gap:12px}
+}
 </style>
 </head>
 <body>
-
 
 <!-- Login Page -->
 <div class="login-page" id="loginPage">
   <div class="login-box">
     <div class="login-logo">📦</div>
     <div class="login-title">库存管理系统</div>
+    <div class="login-sub">选择身份并输入 PIN 码登录</div>
     <div class="login-err" id="loginErr">密码错误，请重试</div>
     <select class="login-select" id="loginName">
       <option value="">选择你的名字...</option>
@@ -208,123 +237,141 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<div class="hdr"><h1>📦 库存管理</h1></div>
-<div class="login-user" id="userBar" style="display:none"><span>👤</span><b id="userName"></b><span class="login-logout" onclick="doLogout()">退出</span></div>
+<!-- Main App -->
+<div id="mainApp" style="display:none">
+  <div class="hdr">
+    <h1>📦 库存管理</h1>
+  </div>
+  <div class="login-user" id="userBar"><span>👤</span><b id="userName"></b><span class="login-logout" onclick="doLogout()">退出</span></div>
 
-<div class="tabs" id="mainTabs" style="display:none">
-  <div class="tab active" data-tab="home">首页</div>
-  <div class="tab" data-tab="prod">商品</div>
-  <div class="tab" data-tab="log">记录</div>
-  <div class="tab" data-tab="set">设置</div>
-</div>
+  <div class="tabs" id="mainTabs">
+    <div class="tab active" data-tab="home"><span class="tab-icon">🏠</span>首页</div>
+    <div class="tab" data-tab="prod"><span class="tab-icon">🏷️</span>商品</div>
+    <div class="tab" data-tab="log"><span class="tab-icon">📋</span>记录</div>
+    <div class="tab" data-tab="set"><span class="tab-icon">⚙️</span>设置</div>
+  </div>
 
-<!-- ===== 首页 ===== -->
-<div class="section show" id="sec-home">
-  <div class="action-bar">
-    <button class="act-btn act-in" onclick="openOp('in')"><span class="icon">⬆️</span>入库</button>
-    <button class="act-btn act-out" onclick="openOp('out')"><span class="icon">⬇️</span>出库</button>
-    <button class="act-btn act-transfer" onclick="openOp('transfer')"><span class="icon">🔄</span>调货</button>
-    <button class="act-btn act-fix" onclick="openOp('fix')"><span class="icon">✏️</span>修正</button>
-  </div>
-  <div class="reg-sel" id="regSel"></div>
-  <div class="stats">
-    <div class="st"><div class="st-n" id="sTotal">-</div><div class="st-l">商品种类</div></div>
-    <div class="st"><div class="st-n" id="sOk" style="color:var(--s)">-</div><div class="st-l">充足(≥20)</div></div>
-    <div class="st"><div class="st-n" id="sWarn" style="color:var(--w)">-</div><div class="st-l">较缺(10~20)</div></div>
-    <div class="st"><div class="st-n" id="sLow" style="color:var(--d)">-</div><div class="st-l">急缺(<10)</div></div>
-  </div>
-  <div id="lowStockAlert" style="display:none;margin-bottom:12px;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px">
-    <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:6px">🚨 急缺商品</div>
-    <div id="lowStockList" style="font-size:13px;color:#b91c1c;line-height:1.8"></div>
-  </div>
-  <div class="sbar"><input id="sSearch" placeholder="搜索商品..." autocomplete="off"></div>
-  <div id="invList"></div>
-</div>
-
-<!-- ===== 操作页（入库/出库/调货） ===== -->
-<div class="section" id="sec-op">
-  <div class="op-header">
-    <button class="op-back" onclick="closeOp()">←</button>
-    <div class="op-title" id="opTitle">入库</div>
-    <span class="op-badge" id="opBadge" style="background:#dcfce7;color:#166534">入库</span>
-  </div>
-  <div id="opRegSel"></div>
-  <div id="opTransferReg" style="display:none">
-    <div style="font-size:12px;color:var(--tl);margin-bottom:6px;font-weight:600">调出地区 → 调入地区</div>
-    <div class="transfer-reg">
-      <select class="fi" id="opFromReg" style="flex:1" onchange="renderOpList()"></select>
-      <span class="arrow">→</span>
-      <select class="fi" id="opToReg" style="flex:1" onchange="renderOpList()"></select>
+  <!-- ===== 首页 ===== -->
+  <div class="section show" id="sec-home">
+    <div class="action-bar">
+      <button class="act-btn act-in" onclick="openOp('in')"><span class="icon">📥</span>入库</button>
+      <button class="act-btn act-out" onclick="openOp('out')"><span class="icon">📤</span>出库</button>
+      <button class="act-btn act-transfer" onclick="openOp('transfer')"><span class="icon">🔄</span>调货</button>
+      <button class="act-btn act-fix" onclick="openOp('fix')"><span class="icon">✏️</span>修正</button>
     </div>
+    <div class="reg-sel" id="regSel"></div>
+    <div class="stats">
+      <div class="st"><div class="st-n" id="sTotal">-</div><div class="st-l">商品种类</div></div>
+      <div class="st"><div class="st-n" id="sOk" style="color:var(--s)">-</div><div class="st-l">充足≥20</div></div>
+      <div class="st"><div class="st-n" id="sWarn" style="color:var(--w)">-</div><div class="st-l">较缺</div></div>
+      <div class="st"><div class="st-n" id="sLow" style="color:var(--d)">-</div><div class="st-l">急缺<10</div></div>
+    </div>
+    <div id="lowStockAlert" style="display:none;margin-bottom:14px;padding:14px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fecaca;border-radius:14px">
+      <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:8px">🚨 急缺商品提醒</div>
+      <div id="lowStockList" style="font-size:13px;color:#b91c1c;line-height:1.8"></div>
+    </div>
+    <div class="sbar"><input id="sSearch" placeholder="搜索商品..." autocomplete="off"></div>
+    <div id="invList"></div>
   </div>
-  <div class="paste-toggle">
-    <div class="paste-btn" onclick="togglePaste()">📋 快速识别粘贴（粘贴文本自动识别商品）</div>
-  </div>
-  <div class="paste-wrap" id="pasteWrap">
-    <textarea class="paste-area" id="pasteArea" placeholder="粘贴你的文本记录，例如：
+
+  <!-- ===== 操作页 ===== -->
+  <div class="section" id="sec-op">
+    <div class="op-header">
+      <button class="op-back" onclick="closeOp()">←</button>
+      <div class="op-title" id="opTitle">入库</div>
+      <span class="op-badge" id="opBadge" style="background:#dcfce7;color:#166534">入库</span>
+    </div>
+    <div id="opRegSel"></div>
+    <div id="opTransferReg" style="display:none">
+      <div style="font-size:12px;color:var(--tl);margin-bottom:8px;font-weight:600">调出地区 → 调入地区</div>
+      <div class="transfer-reg">
+        <select class="fi" id="opFromReg" style="flex:1" onchange="renderOpList()"></select>
+        <span class="arrow">➜</span>
+        <select class="fi" id="opToReg" style="flex:1" onchange="renderOpList()"></select>
+      </div>
+    </div>
+    <div class="paste-toggle">
+      <div class="paste-btn" onclick="togglePaste()">📋 快速识别粘贴（粘贴文本自动识别商品）</div>
+    </div>
+    <div class="paste-wrap" id="pasteWrap">
+      <textarea class="paste-area" id="pasteArea" placeholder="粘贴你的文本记录，例如：
 可乐 10
 A4纸 x5
 矿泉水*20
 牛奶 6箱"></textarea>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn bc" onclick="togglePaste()" style="flex:1">取消</button>
-      <button class="btn bp" onclick="parsePaste()" style="flex:1">🔍 识别</button>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn bc" onclick="togglePaste()" style="flex:1">取消</button>
+        <button class="btn bp" onclick="parsePaste()" style="flex:1">🔍 识别</button>
+      </div>
+      <div class="parse-result" id="parseResult"></div>
     </div>
-    <div class="parse-result" id="parseResult"></div>
+    <div class="sbar"><input id="opSearch" placeholder="搜索商品..." autocomplete="off" oninput="renderOpList()"></div>
+    <div id="opList"></div>
+    <div style="height:90px"></div>
+    <div class="save-bar show" id="saveBar">
+      <button class="save-btn" onclick="saveOp()">确认提交</button>
+    </div>
   </div>
-  <div class="sbar"><input id="opSearch" placeholder="搜索商品..." autocomplete="off" oninput="renderOpList()"></div>
-  <div id="opList"></div>
-  <div style="height:80px"></div>
-  <div class="save-bar show" id="saveBar">
-    <button class="save-btn" onclick="saveOp()">确认提交</button>
-  </div>
-</div>
 
-<!-- ===== 商品 ===== -->
-<div class="section" id="sec-prod">
-  <div class="sbar"><input id="pSearch" placeholder="搜索商品..." autocomplete="off"></div>
-  <div id="prodList"></div>
-  <button class="fab" onclick="openProdModal()">+</button>
-</div>
+  <!-- ===== 商品 ===== -->
+  <div class="section" id="sec-prod">
+    <div class="sbar"><input id="pSearch" placeholder="搜索商品..." autocomplete="off"></div>
+    <div id="prodList"></div>
+    <button class="fab" onclick="openProdModal()">+</button>
+  </div>
 
-<!-- ===== 记录 ===== -->
-<div class="section" id="sec-log">
-  <div class="log-toolbar">
-    <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="log-select" id="logSelectAll" onchange="toggleSelectAll()"> 全选</label>
-    <button class="btn bd" onclick="deleteSelectedLogs()" style="padding:8px 12px;font-size:12px">🗑️ 删除选中</button>
-    <span id="logSelectCount" style="font-size:11px;color:var(--tl)"></span>
+  <!-- ===== 记录 ===== -->
+  <div class="section" id="sec-log">
+    <div class="log-toolbar">
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" class="log-select" id="logSelectAll" onchange="toggleSelectAll()"> 全选</label>
+      <button class="btn bd" onclick="deleteSelectedLogs()" style="padding:8px 14px;font-size:12px">🗑️ 删除选中</button>
+      <span id="logSelectCount" style="font-size:11px;color:var(--tl)"></span>
+    </div>
+    <div class="sbar"><input id="lSearch" placeholder="搜索记录..." autocomplete="off"></div>
+    <div id="logList"></div>
   </div>
-  <div class="sbar"><input id="lSearch" placeholder="搜索记录..." autocomplete="off"></div>
-  <div id="logList"></div>
-</div>
 
-<!-- ===== 设置 ===== -->
-<div class="section" id="sec-set">
-  <h3 style="margin-bottom:12px;font-size:15px">🗂️ 地区管理</h3>
-  <div id="regList"></div>
-  <div style="display:flex;gap:8px;margin-top:12px">
-    <input class="fi" id="newRegName" placeholder="新地区名称" style="flex:1">
-    <button class="btn bp" onclick="addRegion()" style="flex:none;width:auto;padding:11px 20px">添加</button>
-  </div>
-  <h3 style="margin-bottom:12px;font-size:15px;margin-top:24px">👥 员工管理</h3>
-  <div id="empList"></div>
-  <div style="display:flex;gap:8px;margin-top:12px">
-    <input class="fi" id="newEmpName" placeholder="员工姓名" style="flex:1">
-    <input class="fi" id="newEmpPin" placeholder="PIN码" style="flex:none;width:80px" maxlength="8" inputmode="numeric">
-    <button class="btn bp" onclick="addEmployee()" style="flex:none;width:auto;padding:11px 16px">添加</button>
-  </div>
-  <div style="margin-top:24px;padding:14px;background:var(--card);border-radius:12px;box-shadow:var(--sh)">
-    <h3 style="font-size:15px;margin-bottom:12px">💾 数据备份</h3>
-    <button class="btn bp" onclick="exportCSV()" style="width:100%;margin-bottom:8px">📥 导出库存数据（CSV）</button>
-    <button class="btn" onclick="exportLogs()" style="width:100%;background:#e0e7ff;color:var(--p)">📋 导出操作记录（CSV）</button>
-  </div>
-  <div style="margin-top:16px;padding:14px;background:var(--card);border-radius:12px;box-shadow:var(--sh)">
-    <div style="font-size:13px;color:var(--tl);line-height:1.6">
-      <b>使用说明</b><br>
-      • 首页：点击「入库」「出库」「调货」按钮操作库存<br>
-      • 商品页：管理商品目录（添加/编辑/删除）<br>
-      • 记录页：查看所有操作记录，可回退误操作<br>
-      • 设置页：管理地区、管理员工、导出备份
+  <!-- ===== 设置 ===== -->
+  <div class="section" id="sec-set">
+    <h3 style="margin-bottom:14px;font-size:16px;font-weight:700">🗂️ 地区管理</h3>
+    <div id="regList"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input class="fi" id="newRegName" placeholder="新地区名称" style="flex:1">
+      <button class="btn bp" onclick="addRegion()" style="flex:none;width:auto;padding:12px 20px">添加</button>
+    </div>
+
+    <h3 style="margin-bottom:14px;font-size:16px;font-weight:700;margin-top:28px">👥 员工管理</h3>
+    <div id="empList"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input class="fi" id="newEmpName" placeholder="员工姓名" style="flex:1">
+      <input class="fi" id="newEmpPin" placeholder="PIN码" style="flex:none;width:90px" maxlength="8" inputmode="numeric">
+      <button class="btn bp" onclick="addEmployee()" style="flex:none;width:auto;padding:12px 16px">添加</button>
+    </div>
+
+    <div style="margin-top:28px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:14px">💾 数据管理</h3>
+      <button class="btn bp" onclick="exportCSV()" style="width:100%;margin-bottom:10px">📥 导出库存数据（CSV）</button>
+      <button class="btn" onclick="exportLogs()" style="width:100%;background:#e0e7ff;color:var(--p);margin-bottom:10px">📋 导出操作记录（CSV）</button>
+      <div class="import-area">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">📤 导入库存数据（CSV）</div>
+        <div class="import-drop" id="importDrop" onclick="document.getElementById('importFile').click()">
+          <div style="font-size:32px;margin-bottom:8px">📁</div>
+          <div style="font-size:13px">点击选择或拖拽 CSV 文件</div>
+          <div style="font-size:11px;margin-top:4px;color:var(--tl)">格式：商品名称, 地区, 数量</div>
+          <input type="file" id="importFile" accept=".csv,.txt" onchange="handleImport(this)">
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
+      <div style="font-size:13px;color:var(--tl);line-height:1.7">
+        <b style="color:var(--t)">📖 使用说明</b><br>
+        • <b>首页</b>：查看库存概览，点击「入库/出库/调货/修正」操作<br>
+        • <b>商品</b>：管理商品目录（添加/编辑/删除）<br>
+        • <b>记录</b>：查看所有操作记录，支持回退误操作<br>
+        • <b>设置</b>：管理地区、员工、导入导出数据<br>
+        • <b>快速粘贴</b>：在操作页面可粘贴文本自动识别商品
+      </div>
     </div>
   </div>
 </div>
@@ -356,7 +403,7 @@ A4纸 x5
       <button class="btn bc" onclick="closeMo('prodMo')">取消</button>
       <button class="btn bp" onclick="saveProd()">保存</button>
     </div>
-    <button class="btn bd" id="pDelBtn" style="display:none;margin-top:10px" onclick="confirmDelProd()">🗑️ 删除此商品</button>
+    <button class="btn bd" id="pDelBtn" style="display:none;margin-top:12px" onclick="confirmDelProd()">🗑️ 删除此商品</button>
   </div>
 </div>
 
@@ -376,7 +423,7 @@ A4纸 x5
   <div class="done-box">
     <div class="done-icon" id="doneIcon">✅</div>
     <div class="done-title" id="doneTitle">操作完成</div>
-    <div id="doneInfo" style="font-size:12px;color:var(--tl);text-align:center;margin-bottom:12px"></div>
+    <div id="doneInfo" style="font-size:12px;color:var(--tl);text-align:center;margin-bottom:14px"></div>
     <div class="done-list" id="doneList"></div>
     <button class="btn bp" onclick="closeDone()" style="width:100%">完成</button>
   </div>
@@ -390,13 +437,22 @@ const K='sb_publishable_X58fb-T-0_cZANnv5FVuCQ_sW3GyEfi';
 const H={'apikey':K,'Authorization':`Bearer ${K}`,'Content-Type':'application/json','Prefer':'return=representation'};
 
 let regions=[],products=[],inv=[],logs=[];
-let curReg='',curTab='home',sq='';
+let curReg='',curTab='home';
 let selectedLogs=new Set();
-let opType=''; // 'in','out','transfer'
-let opPicks={}; // {productId: quantity}
+let opType='';
+let opPicks={};
+let currentUser=null;
+let homeSearchQuery='';
+let logSearchQuery='';
+let prodSearchQuery='';
 
 // ===== API =====
-async function api(p,o={}){const r=await fetch(U+'/rest/v1/'+p,{...o,headers:{...H,...o.headers}});if(!r.ok)throw new Error(await r.text());const t=await r.text();return t?JSON.parse(t):null}
+async function api(p,o={}){
+  const r=await fetch(U+'/rest/v1/'+p,{...o,headers:{...H,...o.headers}});
+  if(!r.ok)throw new Error(await r.text());
+  const t=await r.text();
+  return t?JSON.parse(t):null;
+}
 
 async function loadAll(){
   try{
@@ -409,8 +465,8 @@ async function loadAll(){
     if(!curReg&&regions.length)curReg=regions[0].id;
     renderAll();
   }catch(e){
-    console.error(e);
-    toast('加载失败，请检查数据库');
+    console.error('loadAll failed:',e);
+    toast('加载失败，请检查网络连接');
   }
 }
 
@@ -430,7 +486,7 @@ function renderInv(){
     const p=products.find(pp=>pp.id===i.product_id);
     return{...i,prod:p};
   }).filter(i=>i.prod).filter(i=>{
-    if(sq&&!i.prod.name.toLowerCase().includes(sq)&&!(i.prod.category||'').toLowerCase().includes(sq))return false;
+    if(homeSearchQuery&&!i.prod.name.toLowerCase().includes(homeSearchQuery)&&!(i.prod.category||'').toLowerCase().includes(homeSearchQuery))return false;
     return true;
   }).sort((a,b)=>a.prod.name.localeCompare(b.prod.name));
 
@@ -442,13 +498,12 @@ function renderInv(){
   document.getElementById('sWarn').textContent=warnCount;
   document.getElementById('sLow').textContent=lowCount;
 
-  // Low stock alert
   const lowItems=items.filter(i=>i.quantity<10).sort((a,b)=>a.quantity-b.quantity);
   const alertEl=document.getElementById('lowStockAlert');
   const alertList=document.getElementById('lowStockList');
   if(lowItems.length>0){
     alertEl.style.display='';
-    alertList.innerHTML=lowItems.map(it=>`<span style="display:inline-block;margin-right:8px">${esc(it.prod.name)} <b>(${it.quantity})</b></span>`).join('');
+    alertList.innerHTML=lowItems.map(it=>`<span style="display:inline-block;margin-right:10px;margin-bottom:4px">${esc(it.prod.name)} <b style="color:var(--d)">(${it.quantity})</b></span>`).join('');
   }else{
     alertEl.style.display='none';
   }
@@ -456,8 +511,8 @@ function renderInv(){
   if(!curReg){el.innerHTML='<div class="empty"><div class="empty-icon">🗂️</div><div class="empty-t">请先在设置中添加地区</div></div>';return}
   if(items.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-t">该地区暂无库存</div></div>';return}
 
-  const colors=['#e0e7ff','#fce7f3','#d1fae5','#fef3c7','#e0f2fe','#f3e8ff'];
-  const icons=['📦','🏷️','📋','📌','🔖','📎'];
+  const colors=['#e0e7ff','#fce7f3','#d1fae5','#fef3c7','#e0f2fe','#f3e8ff','#fae8ff','#ecfccb'];
+  const icons=['📦','🏷️','📋','📌','🔖','📎','📒','🗂️'];
   el.innerHTML=items.map((it,idx)=>{
     const c=colors[idx%colors.length];const ic=icons[idx%icons.length];
     const qtyClass=it.quantity<10?'ql':it.quantity<20?'qm':'qk';
@@ -478,7 +533,7 @@ function renderInv(){
 function renderProd(){
   const el=document.getElementById('prodList');
   const ps=products.filter(p=>{
-    if(sq&&!p.name.toLowerCase().includes(sq))return false;
+    if(prodSearchQuery&&!p.name.toLowerCase().includes(prodSearchQuery))return false;
     return true;
   });
   if(ps.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-t">暂无商品<br>点击 + 添加</div></div>';return}
@@ -490,7 +545,7 @@ function renderProd(){
         <div class="card-meta">${p.category?esc(p.category)+' · ':''}${esc(p.unit||'个')}</div>
       </div>
       <div class="card-qty">
-        <div class="qn" style="color:var(--tl);font-size:14px">各地区共 ${total}</div>
+        <div class="qn" style="color:var(--tl);font-size:14px">共 ${total}</div>
       </div>
     </div>`;
   }).join('');
@@ -503,29 +558,28 @@ function renderLog(){
   document.getElementById('logSelectCount').textContent='';
 
   let ls=logs.filter(l=>{
-    if(sq){
+    if(logSearchQuery){
       const p=products.find(pp=>pp.id===l.product_id);
       const r=regions.find(rr=>rr.id===l.region_id);
       const txt=(p?p.name:'')+(r?r.name:'')+(l.note||'');
-      if(!txt.toLowerCase().includes(sq))return false;
+      if(!txt.toLowerCase().includes(logSearchQuery))return false;
     }
     return true;
   });
   if(ls.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-t">暂无记录</div></div>';return}
 
-  // Group by batch_id
   const batches=[];
   const batchMap={};
   ls.forEach(l=>{
     const um=l.note?.match(/\[user:([^\]]+)\]/);
     const userName=um?um[1]:'';
     const bm=l.note?.match(/\[batch:([^\]]+)\]/);
-    const bid=bm?bm[1]:'single_'+l.id;
-    if(!batchMap[bid]){
-      batchMap[bid]={id:bid,type:l.type,time:l.created_at,items:[],reverted:false,note:'',userName:'',logIds:[]};
-      batches.push(batchMap[bid]);
+    const batchKey=bm?bm[1]:'single_'+l.id;
+    if(!batchMap[batchKey]){
+      batchMap[batchKey]={id:batchKey,type:l.type,time:l.created_at,items:[],reverted:false,note:'',userName:'',logIds:[]};
+      batches.push(batchMap[batchKey]);
     }
-    const batch=batchMap[bid];
+    const batch=batchMap[batchKey];
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
     batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity});
@@ -540,40 +594,41 @@ function renderLog(){
     const isIn=b.type==='in';
     const isTf=b.type==='transfer';
     let typeLabel,typeClass;
-    if(isTf){typeLabel='🔄调货';typeClass='log-tf'}
-    else if(b.type==='fix'){typeLabel='✏️修正';typeClass='log-fix'}
-    else if(isIn){typeLabel='⬆️入库';typeClass='log-in'}
-    else{typeLabel='⬇️出库';typeClass='log-out'}
+    if(isTf){typeLabel='🔄 调货';typeClass='log-tf'}
+    else if(b.type==='fix'){typeLabel='✏️ 修正';typeClass='log-fix'}
+    else if(isIn){typeLabel='📥 入库';typeClass='log-in'}
+    else{typeLabel='📤 出库';typeClass='log-out'}
 
-    const userTag=b.userName?'<span style="display:inline-block;padding:2px 6px;background:#e0e7ff;border-radius:4px;font-size:10px;font-weight:600;color:var(--p);margin-left:6px">👤 '+esc(b.userName)+'</span>':'';
+    const userTag=b.userName?`<span style="display:inline-block;padding:2px 8px;background:#e0e7ff;border-radius:6px;font-size:10px;font-weight:600;color:var(--p)">👤 ${esc(b.userName)}</span>`:'';
 
-    const itemsHtml=b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:600">修正为 ${it.quantity}</span></div>`).join(''):b.items.map(it=>{
+    const itemsHtml=b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">→ ${it.quantity}</span></div>`).join(''):b.items.map(it=>{
       const sign=isIn||isTf?'+':'-';
-      return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:600">${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}</span></div>`;
+      return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}</span></div>`;
     }).join('');
 
-    const allLogIds=JSON.stringify(b.logIds);
-    const bid=b.id;
+    const allLogIdsJson=JSON.stringify(b.logIds);
+    const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity})));
 
     return`<div class="log-card-wrap">
-      <input type="checkbox" class="log-select" onchange="toggleLogSelect('${bid}',${allLogIds})" id="chk_${bid}" ${b.reverted?'disabled':''}>
+      <input type="checkbox" class="log-select" onchange="toggleLogSelect('${b.id}',${allLogIdsJson})" id="chk_${b.id}" ${b.reverted?'disabled':''}>
       <div class="log-card ${b.reverted?'log-reverted':''}">
         <div class="log-hd">
-          <span>${userTag}<span class="log-type ${typeClass}" style="margin-left:0">${typeLabel} (${b.items.length}件)</span></span>
+          <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${userTag}<span class="log-type ${typeClass}">${typeLabel} (${b.items.length}件)</span></span>
           <span class="log-time">${fmtTime(b.time)}</span>
         </div>
         <div class="log-body">
           ${itemsHtml}
-          ${b.note?'<div style="margin-top:4px;font-size:11px;color:var(--tl)">'+esc(b.note)+'</div>':''}
+          ${b.note?`<div style="margin-top:6px;font-size:11px;color:var(--tl);padding:6px 8px;background:var(--bg);border-radius:8px">${esc(b.note)}</div>`:''}
         </div>
-        ${!b.reverted?`<button class="log-undo" onclick="undoBatch(${allLogIds},'${b.type}',${JSON.stringify(b.items.map(i=>i.product?.id||''))},${JSON.stringify(b.items.map(i=>i.region?.id||''))},${JSON.stringify(b.items.map(i=>i.quantity))})">↩️ 回退整批</button>`:''}
+        ${!b.reverted?`<button class="log-undo" onclick="undoBatch('${b.id}',${allLogIdsJson},'${b.type}',${itemsJson})">↩️ 回退整批</button>`:''}
       </div>
     </div>`;
   }).join('');
 }
+
 function renderRegList(){
   const el=document.getElementById('regList');
-  if(regions.length===0){el.innerHTML='<div class="empty-t" style="text-align:center;padding:16px;color:var(--tl)">暂无地区，请添加</div>';return}
+  if(regions.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tl);font-size:13px">暂无地区，请添加</div>';return}
   el.innerHTML=regions.map(r=>{
     const cnt=inv.filter(i=>i.region_id===r.id).length;
     return`<div class="rm-item">
@@ -584,7 +639,7 @@ function renderRegList(){
 }
 
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
-function fmtTime(ts){if(!ts)return'';const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`}
+function fmtTime(ts){if(!ts)return'';const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 
 // ===== TABS =====
 document.querySelectorAll('.tab').forEach(t=>{
@@ -594,18 +649,17 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
     document.getElementById('sec-'+t.dataset.tab).classList.add('show');
     curTab=t.dataset.tab;
-    sq='';
     if(curTab==='home'){closeOp();renderInv()}
-    if(curTab==='prod')renderProd();
-    if(curTab==='log')renderLog();
+    if(curTab==='prod'){prodSearchQuery='';document.getElementById('pSearch').value='';renderProd();}
+    if(curTab==='log'){logSearchQuery='';document.getElementById('lSearch').value='';renderLog();}
   };
 });
 
-document.getElementById('sSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderInv()};
-document.getElementById('pSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderProd()};
-document.getElementById('lSearch').oninput=e=>{sq=e.target.value.toLowerCase();renderLog()};
+document.getElementById('sSearch').oninput=e=>{homeSearchQuery=e.target.value.toLowerCase();renderInv()};
+document.getElementById('pSearch').oninput=e=>{prodSearchQuery=e.target.value.toLowerCase();renderProd()};
+document.getElementById('lSearch').oninput=e=>{logSearchQuery=e.target.value.toLowerCase();renderLog()};
 
-// ===== OPERATION (IN/OUT/TRANSFER) =====
+// ===== OPERATION =====
 function openOp(type){
   if(regions.length<1){toast('请先在设置中添加地区');return}
   if(products.length<1){toast('请先在商品页添加商品');return}
@@ -619,23 +673,24 @@ function openOp(type){
   const tfEl=document.getElementById('opTransferReg');
   const regEl=document.getElementById('opRegSel');
 
-  if(type==='in'){
-    titleEl.textContent='入库操作';badgeEl.textContent='入库';badgeEl.style.cssText='background:#dcfce7;color:#166534';
-    tfEl.style.display='none';regEl.style.display='';
-    regEl.innerHTML=`<div style="font-size:12px;color:var(--tl);margin-bottom:6px;font-weight:600">选择入库地区</div><div class="reg-sel">${regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selOpReg('${r.id}')">${esc(r.name)}</div>`).join('')}</div>`;
-  }else if(type==='out'){
-    titleEl.textContent='出库操作';badgeEl.textContent='出库';badgeEl.style.cssText='background:#fee2e2;color:#991b1b';
-    tfEl.style.display='none';regEl.style.display='';
-    regEl.innerHTML=`<div style="font-size:12px;color:var(--tl);margin-bottom:6px;font-weight:600">选择出库地区</div><div class="reg-sel">${regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selOpReg('${r.id}')">${esc(r.name)}</div>`).join('')}</div>`;
-  }else if(type==='fix'){
-    titleEl.textContent='库存修正';badgeEl.textContent='修正';badgeEl.style.cssText='background:#fef9c3;color:#854d0e';
-    tfEl.style.display='none';regEl.style.display='';
-    regEl.innerHTML=`<div style="font-size:12px;color:var(--tl);margin-bottom:6px;font-weight:600">选择修正地区</div><div class="reg-sel">${regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selOpReg('${r.id}')">${esc(r.name)}</div>`).join('')}</div>`;
-  }else{
-    titleEl.textContent='调货操作';badgeEl.textContent='调货';badgeEl.style.cssText='background:#e0f2fe;color:#0c4a6e';
-    regEl.style.display='none';tfEl.style.display='';
+  const configs={
+    in:{title:'入库操作',badge:'入库',bg:'#dcfce7',color:'#166534',label:'入库地区'},
+    out:{title:'出库操作',badge:'出库',bg:'#fee2e2',color:'#991b1b',label:'出库地区'},
+    fix:{title:'库存修正',badge:'修正',bg:'#fef9c3',color:'#854d0e',label:'修正地区'},
+    transfer:{title:'调货操作',badge:'调货',bg:'#e0f2fe',color:'#0c4a6e'}
+  };
+  const cfg=configs[type];
+  titleEl.textContent=cfg.title;
+  badgeEl.textContent=cfg.badge;
+  badgeEl.style.cssText=`background:${cfg.bg};color:${cfg.color}`;
+
+  if(type==='transfer'){
+    tfEl.style.display='';regEl.style.display='none';
     document.getElementById('opFromReg').innerHTML=regions.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('');
     document.getElementById('opToReg').innerHTML=regions.map((r,i)=>`<option value="${r.id}" ${i===1?'selected':''}>${esc(r.name)}</option>`).join('');
+  }else{
+    tfEl.style.display='none';regEl.style.display='';
+    regEl.innerHTML=`<div style="font-size:12px;color:var(--tl);margin-bottom:8px;font-weight:600">${cfg.label}</div><div class="reg-sel">${regions.map(r=>`<div class="reg-chip ${curReg===r.id?'active':''}" onclick="selOpReg('${r.id}')">${esc(r.name)}</div>`).join('')}</div>`;
   }
 
   document.getElementById('opSearch').value='';
@@ -677,39 +732,37 @@ function renderOpList(){
     const stock=invItem?invItem.quantity:0;
     const picked=p.id in opPicks?opPicks[p.id]:(opType==='fix'?stock:0);
     const isOut=opType==='out';
-    const isTransfer=opType==='transfer';
     const isFix=opType==='fix';
-    const maxPick=isOut?stock:99999;
-    const canInc=!isOut||picked<stock;
 
     if(isFix){
-      // Fix mode: show current stock, user inputs new quantity
-      const newQty=picked; // picked stores the new target quantity
+      const newQty=picked;
       const diff=newQty-stock;
-      const diffStr=diff>0?`<span style="color:var(--s)">+${diff}</span>`:diff<0?`<span style="color:var(--d)">${diff}</span>`:`<span style="color:var(--tl)">不变</span>`;
+      const diffStr=diff>0?`<span style="color:var(--s);font-weight:700">+${diff}</span>`:diff<0?`<span style="color:var(--d);font-weight:700">${diff}</span>`:`<span style="color:var(--tl)">—</span>`;
       return`<div class="pick-row">
         <div class="card-info">
           <div class="pick-name">${esc(p.name)}</div>
           <div class="pick-stock">当前：${stock} ${esc(p.unit||'个')}</div>
         </div>
         <div class="pick-ctrl">
-          <button class="pick-btn" onclick="adjFix('${p.id}',-1)" ${newQty<=0?'style="opacity:.3"':''}>−</button>
+          <button class="pick-btn" onclick="adjFix('${p.id}',-1)" ${newQty<=0?'disabled':''}>−</button>
           <div class="pick-num">${newQty}</div>
           <button class="pick-btn" onclick="adjFix('${p.id}',1)">+</button>
         </div>
-        <div style="font-size:11px;min-width:40px;text-align:right">${diffStr}</div>
+        <div style="font-size:11px;min-width:44px;text-align:right">${diffStr}</div>
       </div>`;
     }
 
+    const maxPick=isOut?stock:99999;
+    const canInc=!isOut||picked<stock;
     return`<div class="pick-row">
       <div class="card-info">
         <div class="pick-name">${esc(p.name)}</div>
         <div class="pick-stock">库存：${stock} ${esc(p.unit||'个')}</div>
       </div>
       <div class="pick-ctrl">
-        <button class="pick-btn" onclick="adjPick('${p.id}',-1,${isOut?stock:99999})" ${picked<=0?'style="opacity:.3"':''}>−</button>
+        <button class="pick-btn" onclick="adjPick('${p.id}',-1,${isOut?stock:99999})" ${picked<=0?'disabled':''}>−</button>
         <div class="pick-num ${picked===0?'pick-zero':''}">${picked}</div>
-        <button class="pick-btn" onclick="adjPick('${p.id}',1,${isOut?stock:99999})" ${!canInc?'style="opacity:.3"':''}>+</button>
+        <button class="pick-btn" onclick="adjPick('${p.id}',1,${isOut?stock:99999})" ${!canInc?'disabled':''}>+</button>
       </div>
     </div>`;
   }).join('');
@@ -738,10 +791,10 @@ async function saveOp(){
   const now=new Date().toISOString();
   const summary=[];
   const batchId='b'+Date.now()+Math.random().toString(36).substr(2,4);
+  const userName=currentUser?currentUser.name:'未知';
 
   try{
     if(opType==='fix'){
-      // Fix mode: directly set quantity
       const regId=curReg;
       for(const[pid,newQty]of picks){
         let invItem=inv.find(i=>i.product_id===pid&&i.region_id===regId);
@@ -754,7 +807,7 @@ async function saveOp(){
           const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,quantity:newQty})});
           inv.push(res[0]);
         }
-        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:'fix',quantity:Math.abs(newQty-oldQty),note:'[user:'+(currentUser?currentUser.name:'未知')+'] [batch:'+batchId+'] '+`修正: ${oldQty} → ${newQty}`})});
+        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:'fix',quantity:Math.abs(newQty-oldQty),note:`[user:${userName}] [batch:${batchId}] 修正: ${oldQty} → ${newQty}`})});
         const p=products.find(pp=>pp.id===pid);
         summary.push({name:p?p.name:'未知',oldQty,newQty,unit:p?p.unit:'个'});
       }
@@ -772,6 +825,9 @@ async function saveOp(){
         }
       }
 
+      const fromName=regions.find(r=>r.id===fromReg)?.name||'';
+      const toName=regions.find(r=>r.id===toReg)?.name||'';
+
       for(const[pid,qty]of picks){
         const fromInv=inv.find(i=>i.product_id===pid&&i.region_id===fromReg);
         await api(`inventory?id=eq.${fromInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:fromInv.quantity-qty})});
@@ -786,12 +842,10 @@ async function saveOp(){
           inv.push(res[0]);
         }
 
-        const fromName=regions.find(r=>r.id===fromReg)?.name||'';
-        const toName=regions.find(r=>r.id===toReg)?.name||'';
-        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:fromReg,type:'transfer',quantity:qty,note:'[user:'+(currentUser?currentUser.name:'未知')+'] [batch:'+batchId+'] '+`${fromName} → ${toName}`})});
+        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:fromReg,type:'transfer',quantity:qty,note:`[user:${userName}] [batch:${batchId}] ${fromName} → ${toName}`})});
 
         const p=products.find(pp=>pp.id===pid);
-        summary.push({name:p?p.name:'未知',qty,unit:p?p.unit:'个'});
+        summary.push({name:p?p.name:'未知',qty,unit:p?p.unit:'个',fromName,toName});
       }
 
     }else{
@@ -822,18 +876,16 @@ async function saveOp(){
           invItem.quantity-=qty;
         }
 
-        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:opType,quantity:qty})});
+        await api('stock_logs',{method:'POST',body:JSON.stringify({product_id:pid,region_id:regId,type:opType,quantity:qty,note:`[user:${userName}] [batch:${batchId}]`})});
 
         const p=products.find(pp=>pp.id===pid);
         summary.push({name:p?p.name:'未知',qty,unit:p?p.unit:'个'});
       }
     }
 
-    // Show done summary
     const regName=opType==='transfer'?'':regions.find(r=>r.id===curReg)?.name||'';
     showDone(summary,regName);
 
-    // Reload data in background
     [products,inv,logs]=await Promise.all([
       api('products?order=name'),
       api('inventory'),
@@ -845,21 +897,18 @@ async function saveOp(){
 
 function showDone(items,regName){
   const overlay=document.getElementById('doneOverlay');
-  const icon=document.getElementById('doneIcon');
-  const title=document.getElementById('doneTitle');
-  const info=document.getElementById('doneInfo');
-  const list=document.getElementById('doneList');
+  const icons={in:'📥',out:'📤',transfer:'🔄',fix:'✏️'};
+  const titles={in:'入库完成',out:'出库完成',transfer:'调货完成',fix:'修正完成'};
+  document.getElementById('doneIcon').textContent=icons[opType]||'✅';
+  document.getElementById('doneTitle').textContent=titles[opType]||'操作完成';
+  document.getElementById('doneInfo').textContent=regName?`地区：${regName}`:'';
 
-  if(opType==='in'){icon.textContent='📥';title.textContent='入库完成'}
-  else if(opType==='out'){icon.textContent='📤';title.textContent='出库完成'}
-  else if(opType==='transfer'){icon.textContent='🔄';title.textContent='调货完成'}
-  else{icon.textContent='✏️';title.textContent='修正完成'}
-
-  info.textContent=regName?`地区：${regName}`:'';
   if(opType==='fix'){
-    list.innerHTML=items.map(it=>`<div class="done-item"><span>${esc(it.name)}</span><span style="font-weight:700">${it.oldQty} → ${it.newQty} ${esc(it.unit)}</span></div>`).join('');
+    document.getElementById('doneList').innerHTML=items.map(it=>`<div class="done-item"><span>${esc(it.name)}</span><span style="font-weight:700">${it.oldQty} → ${it.newQty} ${esc(it.unit)}</span></div>`).join('');
+  }else if(opType==='transfer'){
+    document.getElementById('doneList').innerHTML=items.map(it=>`<div class="done-item"><span>${esc(it.name)}</span><span style="font-weight:700">${esc(it.fromName||'')} → ${esc(it.toName||'')} +${it.qty} ${esc(it.unit)}</span></div>`).join('');
   }else{
-    list.innerHTML=items.map(it=>`<div class="done-item"><span>${esc(it.name)}</span><span style="font-weight:700">${opType==='out'?'-':'+'}${it.qty} ${esc(it.unit)}</span></div>`).join('');
+    document.getElementById('doneList').innerHTML=items.map(it=>`<div class="done-item"><span>${esc(it.name)}</span><span style="font-weight:700">${opType==='out'?'-':'+'}${it.qty} ${esc(it.unit)}</span></div>`).join('');
   }
   overlay.classList.add('show');
 }
@@ -870,15 +919,35 @@ function closeDone(){
 }
 
 // ===== UNDO =====
-async function undoBatch(logIds,type,pids,rids,qtys){
-  showCo('确定回退整批操作？所有商品库存将恢复。',async()=>{
+async function undoBatch(batchId,logIds,type,items){
+  const desc=type==='in'?'入库':type==='out'?'出库':type==='transfer'?'调货':'修正';
+  showCo(`确定回退整批${desc}操作？所有商品库存将恢复。`,async()=>{
     try{
       for(let i=0;i<logIds.length;i++){
-        const invItem=inv.find(ii=>ii.product_id===pids[i]&&ii.region_id===rids[i]);
+        const{pid,rid,qty}=items[i];
+        const invItem=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
         if(invItem){
           let newQty;
-          if(type==='in')newQty=Math.max(0,invItem.quantity-qtys[i]);
-          else newQty=invItem.quantity+qtys[i];
+          if(type==='in')newQty=Math.max(0,invItem.quantity-qty);
+          else if(type==='out')newQty=invItem.quantity+qty;
+          else if(type==='transfer'){
+            // Transfer undo: restore the from region (add back), and reduce the to region
+            // First, find the to-region from the log note
+            const logItem=logs.find(l=>l.id===logIds[i]);
+            const toMatch=logItem?.note?.match(/→\s*(.+?)(?:\]|$)/);
+            const toRegName=toMatch?toMatch[1].trim():'';
+            const toReg=regions.find(r=>r.name===toRegName);
+            if(toReg){
+              const toInv=inv.find(ii=>ii.product_id===pid&&ii.region_id===toReg.id);
+              if(toInv){
+                await api(`inventory?id=eq.${toInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:Math.max(0,toInv.quantity-qty)})});
+                toInv.quantity=Math.max(0,toInv.quantity-qty);
+              }
+            }
+            newQty=invItem.quantity+qty;
+          }else{
+            newQty=qty; // fix: not straightforward, skip
+          }
           await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:newQty})});
           invItem.quantity=newQty;
         }
@@ -996,16 +1065,19 @@ function exportCSV(){
   downloadCSV(rows,'库存备份_'+fmtDate()+'.csv');
   toast('库存数据已导出 ✅');
 }
+
 function exportLogs(){
   const rows=[['时间','类型','商品','地区','数量','备注']];
   logs.forEach(l=>{
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
-    rows.push([fmtTime(l.created_at),l.type==='in'?'入库':l.type==='out'?'出库':'调货',p?p.name:'未知',r?r.name:'未知',l.quantity,l.note||'']);
+    const typeMap={in:'入库',out:'出库',transfer:'调货',fix:'修正'};
+    rows.push([fmtTime(l.created_at),typeMap[l.type]||l.type,p?p.name:'未知',r?r.name:'未知',l.quantity,(l.note||'').replace(/\[[^\]]+\]\s*/g,'').trim()]);
   });
   downloadCSV(rows,'操作记录_'+fmtDate()+'.csv');
   toast('操作记录已导出 ✅');
 }
+
 function downloadCSV(rows,filename){
   const bom='\uFEFF';
   const csv=bom+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
@@ -1015,19 +1087,102 @@ function downloadCSV(rows,filename){
   a.download=filename;
   a.click();
 }
+
 function fmtDate(){const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
+
+// ===== IMPORT =====
+function handleImport(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    const text=e.target.result;
+    const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+    if(lines.length<2){toast('CSV 文件为空');return}
+
+    // Skip header if it looks like one
+    let startIdx=0;
+    const first=lines[0].toLowerCase();
+    if(first.includes('商品')||first.includes('名称')||first.includes('name')||first.includes('地区')){
+      startIdx=1;
+    }
+
+    let imported=0,skipped=0;
+    for(let i=startIdx;i<lines.length;i++){
+      const parts=lines[i].split(',').map(s=>s.trim().replace(/^"|"$/g,''));
+      if(parts.length<3){skipped++;continue}
+      const[prodName,regName,qtyStr]=parts;
+      const qty=parseInt(qtyStr);
+      if(!prodName||!regName||isNaN(qty)){skipped++;continue}
+
+      // Find or create product
+      let prod=products.find(p=>p.name===prodName);
+      if(!prod){
+        try{
+          const res=await api('products',{method:'POST',body:JSON.stringify({name:prodName,unit:'个'})});
+          prod=res[0];
+          products.push(prod);
+        }catch(e){skipped++;continue}
+      }
+
+      // Find region
+      let reg=regions.find(r=>r.name===regName);
+      if(!reg){
+        try{
+          const res=await api('regions',{method:'POST',body:JSON.stringify({name:regName})});
+          reg=res[0];
+          regions.push(reg);
+        }catch(e){skipped++;continue}
+      }
+
+      // Update or create inventory
+      let invItem=inv.find(ii=>ii.product_id===prod.id&&ii.region_id===reg.id);
+      try{
+        if(invItem){
+          await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:qty})});
+          invItem.quantity=qty;
+        }else{
+          const res=await api('inventory',{method:'POST',body:JSON.stringify({product_id:prod.id,region_id:reg.id,quantity:qty})});
+          inv.push(res[0]);
+        }
+        imported++;
+      }catch(e){skipped++}
+    }
+
+    if(!curReg&&regions.length)curReg=regions[0].id;
+    renderAll();
+    toast(`导入完成：${imported} 条成功，${skipped} 条跳过`);
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+// Drag & drop
+const importDrop=document.getElementById('importDrop');
+if(importDrop){
+  importDrop.addEventListener('dragover',e=>{e.preventDefault();importDrop.classList.add('dragover')});
+  importDrop.addEventListener('dragleave',()=>{importDrop.classList.remove('dragover')});
+  importDrop.addEventListener('drop',e=>{
+    e.preventDefault();importDrop.classList.remove('dragover');
+    const file=e.dataTransfer.files[0];
+    if(file){
+      const input=document.getElementById('importFile');
+      const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
+      handleImport(input);
+    }
+  });
+}
 
 // ===== MODAL HELPERS =====
 function openMo(id){document.getElementById(id).classList.add('show')}
 function closeMo(id){document.getElementById(id).classList.remove('show')}
 function showCo(text,cb){document.getElementById('coText').textContent=text;document.getElementById('coOk').onclick=cb;document.getElementById('coMo').classList.add('show')}
 function closeCo(){document.getElementById('coMo').classList.remove('show')}
-function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000)}
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
 
 document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e.target===e.currentTarget)closeMo(m.id)})});
 document.getElementById('coMo').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCo()});
 document.getElementById('doneOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDone()});
-
 
 // ===== SMART PASTE =====
 function togglePaste(){
@@ -1048,41 +1203,32 @@ function parsePaste(){
   const unmatched=[];
 
   lines.forEach(line=>{
-    // Try multiple formats:
-    // "可乐 10"  "可乐x10"  "可乐*10"  "可乐 x 10"  "10 可乐"  "可乐 10个"  "可乐 10箱"
     let name='',qty=0;
 
-    // Pattern 1: name [x|*|×] number  (e.g., "可乐x10", "A4纸*5")
     let m=line.match(/^(.+?)[\s]*[xX*×][\s]*(\d+)/);
     if(m){name=m[1].trim();qty=parseInt(m[2]);}
 
-    // Pattern 2: name number  (e.g., "可乐 10", "矿泉水 20瓶")
     if(!name){
       m=line.match(/^(.+?)\s+(\d+)[^\d]*$/);
       if(m){name=m[1].trim();qty=parseInt(m[2]);}
     }
 
-    // Pattern 3: number name  (e.g., "10 可乐", "5箱A4纸")
     if(!name){
       m=line.match(/^(\d+)[^\d]*\s+(.+)$/);
       if(m){qty=parseInt(m[1]);name=m[2].trim();}
     }
 
-    // Pattern 4: just name (quantity defaults to 1)
     if(!name){
       name=line.replace(/[\s]+$/,'').trim();
       qty=0;
     }
 
     if(name){
-      // Match against product database (fuzzy match)
       const lc=name.toLowerCase();
       let best=null,bestScore=0;
       products.forEach(p=>{
         const pn=p.name.toLowerCase();
-        // Exact match
         if(pn===lc){best=p;bestScore=100;return;}
-        // Contains match
         if(pn.includes(lc)||lc.includes(pn)){
           const score=Math.min(lc.length,pn.length)/Math.max(lc.length,pn.length)*80;
           if(score>bestScore){best=p;bestScore=score;}
@@ -1096,12 +1242,10 @@ function parsePaste(){
     }
   });
 
-  // Fill opPicks with matched items
   matched.forEach(m=>{
     if(m.qty>0)opPicks[m.product.id]=m.qty;
   });
 
-  // Show results
   const el=document.getElementById('parseResult');
   let html='';
   if(matched.length>0){
@@ -1120,11 +1264,8 @@ function parsePaste(){
     html='<div class="parse-fail">未能识别任何内容，请检查格式</div>';
   }
   el.innerHTML=html;
-
-  // Update the list
   renderOpList();
 
-  // Auto close paste area after successful parse
   if(matched.length>0){
     setTimeout(()=>{
       document.getElementById('pasteWrap').classList.remove('show');
@@ -1133,16 +1274,11 @@ function parsePaste(){
   }
 }
 
-
-
 // ===== LOGIN =====
-let currentUser=null;
-
 async function loadEmployees(){
   try{
     const emps=await api('employees?order=name');
     renderEmpList(emps);
-    // Fill login select
     const sel=document.getElementById('loginName');
     sel.innerHTML='<option value="">选择你的名字...</option>'+emps.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('');
     return emps;
@@ -1155,8 +1291,8 @@ async function loadEmployees(){
 function renderEmpList(emps){
   const el=document.getElementById('empList');
   if(!el)return;
-  if(!emps||emps.length===0){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--tl);font-size:13px">暂无员工，请添加</div>';return}
-  el.innerHTML=emps.map(e=>`<div class="emp-item"><div><span class="emp-name">${esc(e.name)}</span>${e.is_admin?'<span style="font-size:11px;color:var(--p);margin-left:6px">管理员</span>':''}</div><button class="emp-del" onclick="delEmployee('${e.id}','${esc(e.name)}')">✕</button></div>`).join('');
+  if(!emps||emps.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tl);font-size:13px">暂无员工，请添加</div>';return}
+  el.innerHTML=emps.map(e=>`<div class="emp-item"><div><span class="emp-name">${esc(e.name)}</span>${e.is_admin?'<span style="font-size:11px;color:var(--p);margin-left:6px;font-weight:600">管理员</span>':''}</div><button class="emp-del" onclick="delEmployee('${e.id}','${esc(e.name)}')">✕</button></div>`).join('');
 }
 
 async function addEmployee(){
@@ -1211,23 +1347,18 @@ function doLogout(){
   currentUser=null;
   sessionStorage.removeItem('inv_user');
   document.getElementById('loginPage').style.display='';
-  document.getElementById('mainTabs').style.display='none';
-  document.getElementById('userBar').style.display='none';
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
+  document.getElementById('mainApp').style.display='none';
   document.getElementById('loginPin').value='';
   document.getElementById('loginErr').style.display='none';
 }
 
 function showApp(){
   document.getElementById('loginPage').style.display='none';
-  document.getElementById('mainTabs').style.display='';
-  document.getElementById('userBar').style.display='';
+  document.getElementById('mainApp').style.display='';
   document.getElementById('userName').textContent=currentUser.name;
-  document.getElementById('sec-home').classList.add('show');
   loadAll();
 }
 
-// Check session on load
 function checkSession(){
   const saved=sessionStorage.getItem('inv_user');
   if(saved){
@@ -1236,11 +1367,9 @@ function checkSession(){
   return false;
 }
 
-
-
 // ===== LOG SELECTION =====
-function toggleLogSelect(bid,logIds){
-  const chk=document.getElementById('chk_'+bid);
+function toggleLogSelect(batchKey,logIds){
+  const chk=document.getElementById('chk_'+batchKey);
   if(chk.checked){
     logIds.forEach(id=>selectedLogs.add(id));
   }else{
@@ -1255,7 +1384,6 @@ function toggleSelectAll(){
     chk.checked=checked;
   });
   if(checked){
-    // Select all log IDs from all batches
     logs.forEach(l=>{if(!l.note?.startsWith('[已回退]'))selectedLogs.add(l.id)});
   }else{
     selectedLogs.clear();
