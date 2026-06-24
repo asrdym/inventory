@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="库存管理">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#6B8F71">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%236B8F71'/><text x='50%' y='55%' text-anchor='middle' dominant-baseline='middle' font-size='100'>📦</text></svg>">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5bqT5a2Y566h55CGIiwic2hvcnRfbmFtZSI6IuW6k+WtmCIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjVmN2Y1IiwidGhlbWVfY29sb3IiOiIjNkI4RjcxIn0=">
 <title>库存管理系统</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
 <style>
@@ -1672,7 +1679,7 @@ async function doLogin(){
       return;
     }
     currentUser=emps[0];
-    sessionStorage.setItem('inv_user',JSON.stringify(currentUser));
+    localStorage.setItem('inv_user',JSON.stringify(currentUser));
     showApp();
   }catch(e){
     document.getElementById('loginErr').textContent='登录失败: '+e.message;
@@ -1682,7 +1689,7 @@ async function doLogin(){
 
 function doLogout(){
   currentUser=null;
-  sessionStorage.removeItem('inv_user');
+  localStorage.removeItem('inv_user');
   document.getElementById('loginPage').style.display='';
   document.getElementById('mainApp').style.display='none';
   document.getElementById('loginPin').value='';
@@ -1697,7 +1704,7 @@ function showApp(){
 }
 
 function checkSession(){
-  const saved=sessionStorage.getItem('inv_user');
+  const saved=localStorage.getItem('inv_user');
   if(saved){
     try{currentUser=JSON.parse(saved);showApp();return true;}catch(e){}
   }
