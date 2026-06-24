@@ -586,8 +586,8 @@ function renderLog(){
       return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}</span></div>`;
     }).join('');
 
-    const allLogIdsJson=JSON.stringify(b.logIds);
-    const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity})));
+    const allLogIdsJson=JSON.stringify(b.logIds).replace(/"/g,'&quot;');
+    const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity}))).replace(/"/g,'&quot;');
 
     return`<div class="log-card-wrap">
       <input type="checkbox" class="log-select" onchange="toggleLogSelect('b${bIdx}',${allLogIdsJson})" id="chk_b${bIdx}">
