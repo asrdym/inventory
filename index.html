@@ -315,9 +315,10 @@ A4纸 x5
 
   <!-- ===== 商品 ===== -->
   <div class="section" id="sec-prod">
+    <div class="reg-sel" id="prodRegSel"></div>
     <div class="sbar"><input id="pSearch" placeholder="搜索商品..." autocomplete="off"></div>
     <div id="prodList"></div>
-    <button class="fab" onclick="openProdModal()">+</button>
+    <button class="fab" onclick="openProdModal()" id="prodFab">+</button>
   </div>
 
   <!-- ===== 记录 ===== -->
@@ -333,46 +334,7 @@ A4纸 x5
 
   <!-- ===== 设置 ===== -->
   <div class="section" id="sec-set">
-    <h3 style="margin-bottom:14px;font-size:16px;font-weight:700">🗂️ 地区管理</h3>
-    <div id="regList"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <input class="fi" id="newRegName" placeholder="新地区名称" style="flex:1">
-      <button class="btn bp" onclick="addRegion()" style="flex:none;width:auto;padding:12px 20px">添加</button>
-    </div>
-
-    <h3 style="margin-bottom:14px;font-size:16px;font-weight:700;margin-top:28px">👥 员工管理</h3>
-    <div id="empList"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <input class="fi" id="newEmpName" placeholder="员工姓名" style="flex:1">
-      <input class="fi" id="newEmpPin" placeholder="PIN码" style="flex:none;width:90px" maxlength="8" inputmode="numeric">
-      <button class="btn bp" onclick="addEmployee()" style="flex:none;width:auto;padding:12px 16px">添加</button>
-    </div>
-
-    <div style="margin-top:28px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
-      <h3 style="font-size:16px;font-weight:700;margin-bottom:14px">💾 数据管理</h3>
-      <button class="btn bp" onclick="exportCSV()" style="width:100%;margin-bottom:10px">📥 导出库存数据（CSV）</button>
-      <button class="btn" onclick="exportLogs()" style="width:100%;background:#e0e7ff;color:var(--p);margin-bottom:10px">📋 导出操作记录（CSV）</button>
-      <div class="import-area">
-        <div style="font-size:13px;font-weight:600;margin-bottom:10px">📤 导入库存数据（CSV）</div>
-        <div class="import-drop" id="importDrop" onclick="document.getElementById('importFile').click()">
-          <div style="font-size:32px;margin-bottom:8px">📁</div>
-          <div style="font-size:13px">点击选择或拖拽 CSV 文件</div>
-          <div style="font-size:11px;margin-top:4px;color:var(--tl)">格式：商品名称, 地区, 数量</div>
-          <input type="file" id="importFile" accept=".csv,.txt" onchange="handleImport(this)">
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:20px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
-      <div style="font-size:13px;color:var(--tl);line-height:1.7">
-        <b style="color:var(--t)">📖 使用说明</b><br>
-        • <b>首页</b>：查看库存概览，点击「入库/出库/调货/修正」操作<br>
-        • <b>商品</b>：管理商品目录（添加/编辑/删除）<br>
-        • <b>记录</b>：查看所有操作记录，支持回退误操作<br>
-        • <b>设置</b>：管理地区、员工、导入导出数据<br>
-        • <b>快速粘贴</b>：在操作页面可粘贴文本自动识别商品
-      </div>
-    </div>
+    <div id="settingsContent"></div>
   </div>
 </div>
 
@@ -445,6 +407,7 @@ let currentUser=null;
 let homeSearchQuery='';
 let logSearchQuery='';
 let prodSearchQuery='';
+let prodCurReg='all'; // 'all' or region id
 
 // ===== API =====
 async function api(p,o={}){
@@ -530,23 +493,40 @@ function renderInv(){
   }).join('');
 }
 
+function renderProdRegSel(){
+  const el=document.getElementById('prodRegSel');
+  if(!el)return;
+  let html=`<div class="reg-chip ${prodCurReg==='all'?'active':''}" onclick="selProdReg('all')">全部地区</div>`;
+  html+=regions.map(r=>`<div class="reg-chip ${prodCurReg===r.id?'active':''}" onclick="selProdReg('${r.id}')">${esc(r.name)}</div>`).join('');
+  el.innerHTML=html;
+}
+function selProdReg(id){prodCurReg=id;renderProdRegSel();renderProd()}
+
 function renderProd(){
   const el=document.getElementById('prodList');
+  renderProdRegSel();
   const ps=products.filter(p=>{
     if(prodSearchQuery&&!p.name.toLowerCase().includes(prodSearchQuery))return false;
     return true;
   });
   if(ps.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-t">暂无商品<br>点击 + 添加</div></div>';return}
   el.innerHTML=ps.map(p=>{
-    const total=inv.filter(i=>i.product_id===p.id).reduce((s,i)=>s+i.quantity,0);
+    let regionInfo='';
+    if(prodCurReg==='all'){
+      const total=inv.filter(i=>i.product_id===p.id).reduce((s,i)=>s+i.quantity,0);
+      regionInfo=`<div class="qn" style="color:var(--tl);font-size:14px">共 ${total}</div>`;
+    }else{
+      const invItem=inv.find(i=>i.product_id===p.id&&i.region_id===prodCurReg);
+      const qty=invItem?invItem.quantity:0;
+      const qtyClass=qty<10?'ql':qty<20?'qm':'qk';
+      regionInfo=`<div class="qn ${qtyClass}">${qty}</div><div class="qu">${esc(p.unit||'个')}</div>`;
+    }
     return`<div class="card" onclick="openProdModal('${p.id}')">
       <div class="card-info">
         <div class="card-name">${esc(p.name)}</div>
         <div class="card-meta">${p.category?esc(p.category)+' · ':''}${esc(p.unit||'个')}</div>
       </div>
-      <div class="card-qty">
-        <div class="qn" style="color:var(--tl);font-size:14px">共 ${total}</div>
-      </div>
+      <div class="card-qty">${regionInfo}</div>
     </div>`;
   }).join('');
 }
@@ -590,7 +570,7 @@ function renderLog(){
     if(userName&&!batch.userName)batch.userName=userName;
   });
 
-  el.innerHTML=batches.map(b=>{
+  el.innerHTML=batches.map((b,bIdx)=>{
     const isIn=b.type==='in';
     const isTf=b.type==='transfer';
     let typeLabel,typeClass;
@@ -610,7 +590,7 @@ function renderLog(){
     const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity})));
 
     return`<div class="log-card-wrap">
-      <input type="checkbox" class="log-select" onchange="toggleLogSelect('${b.id}',${allLogIdsJson})" id="chk_${b.id}" ${b.reverted?'disabled':''}>
+      <input type="checkbox" class="log-select" onchange="toggleLogSelect('b${bIdx}',${allLogIdsJson})" id="chk_b${bIdx}">
       <div class="log-card ${b.reverted?'log-reverted':''}">
         <div class="log-hd">
           <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${userTag}<span class="log-type ${typeClass}">${typeLabel} (${b.items.length}件)</span></span>
@@ -620,7 +600,7 @@ function renderLog(){
           ${itemsHtml}
           ${b.note?`<div style="margin-top:6px;font-size:11px;color:var(--tl);padding:6px 8px;background:var(--bg);border-radius:8px">${esc(b.note)}</div>`:''}
         </div>
-        ${!b.reverted?`<button class="log-undo" onclick="undoBatch('${b.id}',${allLogIdsJson},'${b.type}',${itemsJson})">↩️ 回退整批</button>`:''}
+        ${!b.reverted?`<button class="log-undo" onclick="undoBatch('b${bIdx}',${allLogIdsJson},'${b.type}',${itemsJson})">↩️ 回退整批</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -641,6 +621,9 @@ function renderRegList(){
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
 function fmtTime(ts){if(!ts)return'';const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 
+// ===== ADMIN CHECK =====
+function isAdmin(){return currentUser&&currentUser.is_admin}
+
 // ===== TABS =====
 document.querySelectorAll('.tab').forEach(t=>{
   t.onclick=()=>{
@@ -652,6 +635,7 @@ document.querySelectorAll('.tab').forEach(t=>{
     if(curTab==='home'){closeOp();renderInv()}
     if(curTab==='prod'){prodSearchQuery='';document.getElementById('pSearch').value='';renderProd();}
     if(curTab==='log'){logSearchQuery='';document.getElementById('lSearch').value='';renderLog();}
+    if(curTab==='set')renderSettings();
   };
 });
 
@@ -919,37 +903,52 @@ function closeDone(){
 }
 
 // ===== UNDO =====
-async function undoBatch(batchId,logIds,type,items){
+function undoBatch(batchKey,logIds,type,items){
   const desc=type==='in'?'入库':type==='out'?'出库':type==='transfer'?'调货':'修正';
-  showCo(`确定回退整批${desc}操作？所有商品库存将恢复。`,async()=>{
+  showCo(`确定回退整批${desc}操作？所有商品库存将恢复。`,async function onUndoConfirm(){
     try{
+      let toRegId=null;
+      if(type==='transfer'){
+        const firstLog=logs.find(l=>l.id===logIds[0]);
+        if(firstLog?.note){
+          const m=firstLog.note.match(/→\s*([^\]]+?)$/);
+          if(m)toRegId=regions.find(r=>r.name===m[1].trim())?.id||null;
+        }
+      }
       for(let i=0;i<logIds.length;i++){
         const{pid,rid,qty}=items[i];
-        const invItem=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
-        if(invItem){
-          let newQty;
-          if(type==='in')newQty=Math.max(0,invItem.quantity-qty);
-          else if(type==='out')newQty=invItem.quantity+qty;
-          else if(type==='transfer'){
-            // Transfer undo: restore the from region (add back), and reduce the to region
-            // First, find the to-region from the log note
-            const logItem=logs.find(l=>l.id===logIds[i]);
-            const toMatch=logItem?.note?.match(/→\s*(.+?)(?:\]|$)/);
-            const toRegName=toMatch?toMatch[1].trim():'';
-            const toReg=regions.find(r=>r.name===toRegName);
-            if(toReg){
-              const toInv=inv.find(ii=>ii.product_id===pid&&ii.region_id===toReg.id);
-              if(toInv){
-                await api(`inventory?id=eq.${toInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:Math.max(0,toInv.quantity-qty)})});
-                toInv.quantity=Math.max(0,toInv.quantity-qty);
-              }
-            }
-            newQty=invItem.quantity+qty;
-          }else{
-            newQty=qty; // fix: not straightforward, skip
+        if(type==='transfer'){
+          const fromInv=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
+          if(fromInv){
+            await api(`inventory?id=eq.${fromInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:fromInv.quantity+qty})});
+            fromInv.quantity+=qty;
           }
-          await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:newQty})});
-          invItem.quantity=newQty;
+          if(toRegId){
+            const toInv=inv.find(ii=>ii.product_id===pid&&ii.region_id===toRegId);
+            if(toInv){
+              const nq=Math.max(0,toInv.quantity-qty);
+              await api(`inventory?id=eq.${toInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:nq})});
+              toInv.quantity=nq;
+            }
+          }
+        }else if(type==='fix'){
+          const logItem=logs.find(l=>l.id===logIds[i]);
+          const fixMatch=logItem?.note?.match(/修正:\s*(\d+)\s*→\s*(\d+)/);
+          if(fixMatch){
+            const origQty=parseInt(fixMatch[1]);
+            const invItem=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
+            if(invItem){
+              await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:origQty})});
+              invItem.quantity=origQty;
+            }
+          }
+        }else{
+          const invItem=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
+          if(invItem){
+            const nq=type==='in'?Math.max(0,invItem.quantity-qty):invItem.quantity+qty;
+            await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:nq})});
+            invItem.quantity=nq;
+          }
         }
         const logItem=logs.find(l=>l.id===logIds[i]);
         const newNote='[已回退] '+(logItem?.note||'');
@@ -958,7 +957,7 @@ async function undoBatch(batchId,logIds,type,items){
       }
       renderAll();
       toast('已回退整批操作 ✅');
-    }catch(e){toast('回退失败: '+e.message)}
+    }catch(e){console.error('undo failed:',e);toast('回退失败: '+e.message)}
   });
 }
 
@@ -1157,21 +1156,6 @@ function handleImport(input){
   reader.readAsText(file);
 }
 
-// Drag & drop
-const importDrop=document.getElementById('importDrop');
-if(importDrop){
-  importDrop.addEventListener('dragover',e=>{e.preventDefault();importDrop.classList.add('dragover')});
-  importDrop.addEventListener('dragleave',()=>{importDrop.classList.remove('dragover')});
-  importDrop.addEventListener('drop',e=>{
-    e.preventDefault();importDrop.classList.remove('dragover');
-    const file=e.dataTransfer.files[0];
-    if(file){
-      const input=document.getElementById('importFile');
-      const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
-      handleImport(input);
-    }
-  });
-}
 
 // ===== MODAL HELPERS =====
 function openMo(id){document.getElementById(id).classList.add('show')}
@@ -1271,6 +1255,100 @@ function parsePaste(){
       document.getElementById('pasteWrap').classList.remove('show');
       toast(`已识别 ${matched.length} 个商品，请核对数量`);
     },1500);
+  }
+}
+
+// ===== SETTINGS =====
+async function renderSettings(){
+  const el=document.getElementById('settingsContent');
+  const admin=isAdmin();
+  let html='';
+
+  if(!admin){
+    html+=`<div style="padding:16px;background:#fef3c7;border:1px solid #fde68a;border-radius:14px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#92400e">⚠️ 权限不足</div>
+      <div style="font-size:13px;color:#a16207;margin-top:4px">当前登录的账号不是管理员，无法修改设置。请联系管理员。</div>
+    </div>`;
+  }
+
+  html+=`<h3 style="margin-bottom:14px;font-size:16px;font-weight:700">🗂️ 地区管理</h3>`;
+  if(regions.length===0){
+    html+='<div style="text-align:center;padding:20px;color:var(--tl);font-size:13px">暂无地区</div>';
+  }else{
+    html+=regions.map(r=>{
+      const cnt=inv.filter(i=>i.region_id===r.id).length;
+      return`<div class="rm-item">
+        <div><span class="rm-name">${esc(r.name)}</span><span style="font-size:11px;color:var(--tl);margin-left:8px">${cnt} 种商品</span></div>
+        ${admin?`<button class="rm-del" onclick="delRegion('${r.id}','${esc(r.name)}')">✕</button>`:''}
+      </div>`;
+    }).join('');
+  }
+  if(admin){
+    html+=`<div style="display:flex;gap:8px;margin-top:12px">
+      <input class="fi" id="newRegName" placeholder="新地区名称" style="flex:1">
+      <button class="btn bp" onclick="addRegion()" style="flex:none;width:auto;padding:12px 20px">添加</button>
+    </div>`;
+  }
+
+  html+=`<h3 style="margin-bottom:14px;font-size:16px;font-weight:700;margin-top:28px">👥 员工管理</h3>`;
+  try{
+    const emps=await api('employees?order=name');
+    if(!emps||emps.length===0){
+      html+='<div style="text-align:center;padding:20px;color:var(--tl);font-size:13px">暂无员工</div>';
+    }else{
+      html+=emps.map(e=>`<div class="emp-item"><div><span class="emp-name">${esc(e.name)}</span>${e.is_admin?'<span style="font-size:11px;color:var(--p);margin-left:6px;font-weight:600">管理员</span>':''}</div>${admin?`<button class="emp-del" onclick="delEmployee('${e.id}','${esc(e.name)}')">✕</button>`:''}</div>`).join('');
+    }
+  }catch(e){html+='<div style="color:var(--d);font-size:13px">加载员工列表失败</div>'}
+  if(admin){
+    html+=`<div style="display:flex;gap:8px;margin-top:12px">
+      <input class="fi" id="newEmpName" placeholder="员工姓名" style="flex:1">
+      <input class="fi" id="newEmpPin" placeholder="PIN码" style="flex:none;width:90px" maxlength="8" inputmode="numeric">
+      <button class="btn bp" onclick="addEmployee()" style="flex:none;width:auto;padding:12px 16px">添加</button>
+    </div>`;
+  }
+
+  html+=`<div style="margin-top:28px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:14px">💾 数据管理</h3>
+    <button class="btn bp" onclick="exportCSV()" style="width:100%;margin-bottom:10px">📥 导出库存数据（CSV）</button>
+    <button class="btn" onclick="exportLogs()" style="width:100%;background:#e0e7ff;color:var(--p);margin-bottom:10px">📋 导出操作记录（CSV）</button>
+    ${admin?`<div class="import-area">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">📤 导入库存数据（CSV）</div>
+      <div class="import-drop" id="importDrop" onclick="document.getElementById('importFile').click()">
+        <div style="font-size:32px;margin-bottom:8px">📁</div>
+        <div style="font-size:13px">点击选择或拖拽 CSV 文件</div>
+        <div style="font-size:11px;margin-top:4px;color:var(--tl)">格式：商品名称, 地区, 数量</div>
+        <input type="file" id="importFile" accept=".csv,.txt" onchange="handleImport(this)">
+      </div>
+    </div>`:''}
+  </div>`;
+
+  html+=`<div style="margin-top:20px;padding:16px;background:var(--card);border-radius:14px;box-shadow:var(--sh)">
+    <div style="font-size:13px;color:var(--tl);line-height:1.7">
+      <b style="color:var(--t)">📖 使用说明</b><br>
+      • <b>首页</b>：查看库存概览，点击「入库/出库/调货/修正」操作<br>
+      • <b>商品</b>：管理商品目录（添加/编辑/删除），可按地区查看库存<br>
+      • <b>记录</b>：查看所有操作记录，支持回退误操作<br>
+      • <b>设置</b>：管理地区、员工、导入导出数据<br>
+      • <b>快速粘贴</b>：在操作页面可粘贴文本自动识别商品
+    </div>
+  </div>`;
+
+  el.innerHTML=html;
+
+  // Re-bind drag & drop after render
+  const importDrop=document.getElementById('importDrop');
+  if(importDrop){
+    importDrop.addEventListener('dragover',e=>{e.preventDefault();importDrop.classList.add('dragover')});
+    importDrop.addEventListener('dragleave',()=>{importDrop.classList.remove('dragover')});
+    importDrop.addEventListener('drop',e=>{
+      e.preventDefault();importDrop.classList.remove('dragover');
+      const file=e.dataTransfer.files[0];
+      if(file){
+        const input=document.getElementById('importFile');
+        const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
+        handleImport(input);
+      }
+    });
   }
 }
 
@@ -1380,11 +1458,11 @@ function toggleLogSelect(batchKey,logIds){
 
 function toggleSelectAll(){
   const checked=document.getElementById('logSelectAll').checked;
-  document.querySelectorAll('#logList .log-select:not(:disabled)').forEach(chk=>{
+  document.querySelectorAll('#logList .log-select').forEach(chk=>{
     chk.checked=checked;
   });
   if(checked){
-    logs.forEach(l=>{if(!l.note?.startsWith('[已回退]'))selectedLogs.add(l.id)});
+    logs.forEach(l=>selectedLogs.add(l.id));
   }else{
     selectedLogs.clear();
   }
