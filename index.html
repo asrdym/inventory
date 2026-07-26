@@ -478,6 +478,7 @@ let selectedLogs=new Set();
 let opType='';
 let opPicks={};
 let currentUser=null;
+let undoBusy=false;
 let homeSearchQuery='';
 let logSearchQuery='';
 let prodSearchQuery='';
@@ -1034,6 +1035,8 @@ function closeDone(){
 
 // ===== UNDO =====
 function undoBatch(batchKey,logIds,type,items){
+  if(undoBusy)return;
+  undoBusy=true;
   const desc=type==='in'?'入库':type==='out'?'出库':type==='transfer'?'调货':'修正';
   showCo(`确定回退整批${desc}操作？所有商品库存将恢复。`,async function onUndoConfirm(){
     try{
@@ -1088,6 +1091,7 @@ function undoBatch(batchKey,logIds,type,items){
       renderAll();
       toast('已回退整批操作 ✅');
     }catch(e){console.error('undo failed:',e);toast('回退失败: '+e.message)}
+    finally{undoBusy=false}
   });
 }
 
@@ -1296,7 +1300,7 @@ function handleImport(input){
 function openMo(id){document.getElementById(id).classList.add('show')}
 function closeMo(id){document.getElementById(id).classList.remove('show')}
 function showCo(text,cb){document.getElementById('coText').textContent=text;document.getElementById('coOk').onclick=cb;document.getElementById('coMo').classList.add('show')}
-function closeCo(){document.getElementById('coMo').classList.remove('show')}
+function closeCo(){document.getElementById('coMo').classList.remove('show');undoBusy=false}
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
 
 document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e.target===e.currentTarget)closeMo(m.id)})});
