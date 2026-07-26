@@ -705,7 +705,7 @@ function renderLog(){
   ls.forEach(l=>{
     const um=l.note?.match(/\[user:([^\]]+)\]/);
     const userName=um?um[1]:'';
-    const groupKey=userName+'|'+l.product_id;
+    const groupKey=userName+'|'+l.product_id+'|'+l.type;
     if(!batchMap[groupKey]){
       batchMap[groupKey]={types:new Set(),items:[],reverted:false,notes:[],userName:userName,logIds:[],firstTime:l.created_at};
       batches.push(batchMap[groupKey]);
