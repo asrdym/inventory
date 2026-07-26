@@ -1809,12 +1809,14 @@ async function showChart(pid,regId){
     const curQty=curInv?curInv.quantity:0;
 
     const dayChanges={};
+    const fixDays=new Set();
     histLogs.forEach(l=>{
       const d=new Date(l.created_at);
       const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
       if(!dayChanges[key])dayChanges[key]=0;
       const sign=(l.type==='in'||l.type==='transfer')?1:(l.type==='fix'?0:-1);
       if(l.type==='fix'){
+        fixDays.add(key);
         const m=l.note?.match(/修正:\s*(\d+)\s*→\s*(\d+)/);
         if(m)dayChanges[key]+=(parseInt(m[2])-parseInt(m[1]));
       }else{
@@ -1845,37 +1847,51 @@ async function showChart(pid,regId){
     const thresholds=loadThresholds();
     const th=thresholds[pid]||10;
 
+    // 构建修正标记数据：修正日显示数量，其余为 null
+    const fixData=dayKeys.map(k=>fixDays.has(k)?quantities[dayKeys.indexOf(k)]:null);
+
     invChartInstance=new Chart(canvas,{
       type:'line',
       data:{
         labels:dates,
-        datasets:[{
-          label:prod.name,
-          data:quantities,
-          borderColor:'#6B8F71',
-          backgroundColor:'rgba(107,143,113,.1)',
-          fill:true,
-          tension:.3,
-          pointRadius:3,
-          pointHoverRadius:6,
-          borderWidth:2
-        }]
+        datasets:[
+          {
+            label:prod.name,
+            data:quantities,
+            borderColor:'#6B8F71',
+            backgroundColor:'rgba(107,143,113,.1)',
+            fill:true,
+            tension:.3,
+            pointRadius:3,
+            pointHoverRadius:6,
+            borderWidth:2
+          },
+          {
+            label:'修正',
+            data:fixData,
+            borderColor:'transparent',
+            backgroundColor:'#e57373',
+            pointRadius:7,
+            pointHoverRadius:10,
+            pointStyle:'rectRot',
+            showLine:false
+          }
+        ]
       },
       options:{
         responsive:true,
         maintainAspectRatio:false,
         plugins:{
-          legend:{display:false},
-          annotation:{},
+          legend:{display:true,position:'top',labels:{font:{size:11},usePointStyle:true,pointStyle:'rectRot',padding:12}},
           tooltip:{
             callbacks:{
-              label:function(ctx){return ctx.parsed.y+' '+(prod.unit||'个')}
+              label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+' '+(prod.unit||'个')}
             }
           }
         },
         scales:{
-          x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
-          y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:10}}}
+          x:{grid:{display:true,color:'rgba(0,0,0,.06)'},ticks:{font:{size:10},maxRotation:45,autoSkip:false}},
+          y:{beginAtZero:true,grid:{display:true,color:'rgba(0,0,0,.08)'},ticks:{font:{size:10},precision:0,callback:function(v){return Number.isInteger(v)?v:''}}
         }
       },
       plugins:[{
