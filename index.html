@@ -1088,6 +1088,7 @@ function undoBatch(batchKey,logIds,type,items){
         await api(`stock_logs?id=eq.${logIds[i]}`,{method:'PATCH',body:JSON.stringify({note:newNote})});
         if(logItem)logItem.note=newNote;
       }
+      closeCo();
       renderAll();
       toast('已回退整批操作 ✅');
     }catch(e){console.error('undo failed:',e);toast('回退失败: '+e.message)}
