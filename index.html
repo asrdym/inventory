@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#6B8F71">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%236B8F71'/><text x='50%' y='55%' text-anchor='middle' dominant-baseline='middle' font-size='100'>📦</text></svg>">
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5bqT5a2Y566h55CGIiwic2hvcnRfbmFtZSI6IuW6k+WtmCIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjVmN2Y1IiwidGhlbWVfY29sb3IiOiIjNkI4RjcxIn0=">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <title>库存管理系统</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
 <style>
@@ -225,6 +226,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   .action-bar{grid-template-columns:repeat(4,1fr)}
   .stats{gap:12px}
 }
+
+/* Chart Modal */
+.chart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.chart-overlay.show{display:flex}
+.chart-box{background:var(--card);border-radius:20px;padding:20px;width:92%;max-width:500px;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease-out}
+.chart-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:4px}
+.chart-sub{font-size:12px;color:var(--tl);text-align:center;margin-bottom:14px}
+.chart-wrap{position:relative;height:240px;margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -415,6 +424,16 @@ A4纸 x5
 
 <div class="tt" id="toast"></div>
 
+<!-- Chart Modal -->
+<div class="chart-overlay" id="chartOverlay">
+  <div class="chart-box">
+    <div class="chart-title" id="chartTitle">库存趋势</div>
+    <div class="chart-sub" id="chartSub">近 30 天</div>
+    <div class="chart-wrap"><canvas id="invChart"></canvas></div>
+    <button class="btn bp" onclick="closeChart()" style="width:100%">关闭</button>
+  </div>
+</div>
+
 <!-- Debug panel for mobile -->
 <div id="debugPanel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#2d3436;color:#e57373;padding:10px 14px;font-size:11px;z-index:9999;max-height:120px;overflow-y:auto;font-family:monospace;word-break:break-all">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
@@ -584,7 +603,7 @@ function renderInv(){
     const c=colors[idx%colors.length];const ic=icons[idx%icons.length];
     const th=getThreshold(it.product_id);
     const qtyClass=it.quantity<th?'ql':it.quantity<th*2?'qm':'qk';
-    return`<div class="card">
+    return`<div class="card" onclick="showChart('${it.product_id}','${curReg}')">
       <div class="card-icon" style="background:${c}">${ic}</div>
       <div class="card-info">
         <div class="card-name">${esc(it.prod.name)}</div>
@@ -685,39 +704,45 @@ function renderLog(){
     const userName=um?um[1]:'';
     const bm=l.note?.match(/\[batch:([^\]]+)\]/);
     const batchKey=bm?bm[1]:'single_'+l.id;
-    if(!batchMap[batchKey]){
-      batchMap[batchKey]={id:batchKey,type:l.type,time:l.created_at,items:[],reverted:false,note:'',userName:'',logIds:[]};
-      batches.push(batchMap[batchKey]);
+    const groupKey=batchKey+'|'+userName;
+    if(!batchMap[groupKey]){
+      batchMap[groupKey]={id:batchKey,types:new Set(),time:l.created_at,items:[],reverted:false,notes:[],userName:userName,logIds:[]};
+      batches.push(batchMap[groupKey]);
     }
-    const batch=batchMap[batchKey];
+    const batch=batchMap[groupKey];
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
-    batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity});
+    batch.types.add(l.type);
+    batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity,type:l.type});
     batch.logIds.push(l.id);
     if(l.note&&l.note.startsWith('[已回退]'))batch.reverted=true;
     const cleanNote=l.note?.replace(/\[user:[^\]]+\]\s*/,'').replace(/\[batch:[^\]]+\]\s*/,'').replace(/^\[已回退\]\s*/,'').trim();
-    if(cleanNote&&!batch.note)batch.note=cleanNote;
-    if(userName&&!batch.userName)batch.userName=userName;
+    if(cleanNote&&!batch.notes.includes(cleanNote))batch.notes.push(cleanNote);
   });
 
   el.innerHTML=batches.map((b,bIdx)=>{
-    const isIn=b.type==='in';
-    const isTf=b.type==='transfer';
-    let typeLabel,typeClass;
-    if(isTf){typeLabel='🔄 调货';typeClass='log-tf'}
-    else if(b.type==='fix'){typeLabel='✏️ 修正';typeClass='log-fix'}
-    else if(isIn){typeLabel='📥 入库';typeClass='log-in'}
-    else{typeLabel='📤 出库';typeClass='log-out'}
+    const typeEntries=[...b.types];
+    const typeLabelArr=typeEntries.map(t=>{
+      if(t==='transfer')return'🔄 调货';
+      if(t==='fix')return'✏️ 修正';
+      if(t==='in')return'📥 入库';
+      return'📤 出库';
+    });
+    const typeLabel=typeLabelArr.join(' + ');
+    const typeClass=typeEntries.length===1?(typeEntries[0]==='in'?'log-in':typeEntries[0]==='out'?'log-out':typeEntries[0]==='transfer'?'log-tf':'log-fix'):'log-in';
 
     const userTag=b.userName?`<span style="display:inline-block;padding:2px 8px;background:#e8f5e9;border-radius:8px;font-size:10px;font-weight:600;color:var(--pd)">👤 ${esc(b.userName)}</span>`:'';
 
-    const itemsHtml=b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">→ ${it.quantity}</span></div>`).join(''):b.items.map(it=>{
-      const sign=isIn||isTf?'+':'-';
-      return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}</span></div>`;
+    const itemsHtml=b.items.map(it=>{
+      let qtyStr;
+      if(it.type==='fix')qtyStr=`→ ${it.quantity}`;
+      else{const sign=(it.type==='in'||it.type==='transfer')?'+':'-';qtyStr=`${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}`}
+      return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">${qtyStr}</span></div>`;
     }).join('');
 
     const allLogIdsJson=JSON.stringify(b.logIds).replace(/"/g,'&quot;');
-    const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity}))).replace(/"/g,'&quot;');
+    const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity,type:i.type}))).replace(/"/g,'&quot;');
+    const domType=typeEntries.length===1?typeEntries[0]:'in';
 
     return`<div class="log-card-wrap">
       <input type="checkbox" class="log-select" onchange="toggleLogSelect('b${bIdx}',${allLogIdsJson})" id="chk_b${bIdx}">
@@ -728,9 +753,9 @@ function renderLog(){
         </div>
         <div class="log-body">
           ${itemsHtml}
-          ${b.note?`<div style="margin-top:6px;font-size:11px;color:var(--tl);padding:6px 8px;background:var(--bg);border-radius:8px">${esc(b.note)}</div>`:''}
+          ${b.notes.length>0?`<div style="margin-top:6px;font-size:11px;color:var(--tl);padding:6px 8px;background:var(--bg);border-radius:8px">${b.notes.map(n=>esc(n)).join('<br>')}</div>`:''}
         </div>
-        ${!b.reverted?`<button class="log-undo" onclick="undoBatch('b${bIdx}',${allLogIdsJson},'${b.type}',${itemsJson})">↩️ 回退整批</button>`:''}
+        ${!b.reverted?`<button class="log-undo" onclick="undoBatch('b${bIdx}',${allLogIdsJson},'${domType}',${itemsJson})">↩️ 回退整批</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1040,17 +1065,16 @@ function undoBatch(batchKey,logIds,type,items){
   const desc=type==='in'?'入库':type==='out'?'出库':type==='transfer'?'调货':'修正';
   showCo(`确定回退整批${desc}操作？所有商品库存将恢复。`,async function onUndoConfirm(){
     try{
-      let toRegId=null;
-      if(type==='transfer'){
-        const firstLog=logs.find(l=>l.id===logIds[0]);
-        if(firstLog?.note){
-          const m=firstLog.note.match(/→\s*([^\]]+?)$/);
-          if(m)toRegId=regions.find(r=>r.name===m[1].trim())?.id||null;
-        }
-      }
       for(let i=0;i<logIds.length;i++){
         const{pid,rid,qty}=items[i];
-        if(type==='transfer'){
+        const itemType=items[i].type||type;
+        if(itemType==='transfer'){
+          let toRegId=null;
+          const logItem=logs.find(l=>l.id===logIds[i]);
+          if(logItem?.note){
+            const m=logItem.note.match(/→\s*([^\]]+?)$/);
+            if(m)toRegId=regions.find(r=>r.name===m[1].trim())?.id||null;
+          }
           const fromInv=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
           if(fromInv){
             await api(`inventory?id=eq.${fromInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:fromInv.quantity+qty})});
@@ -1064,7 +1088,7 @@ function undoBatch(batchKey,logIds,type,items){
               toInv.quantity=nq;
             }
           }
-        }else if(type==='fix'){
+        }else if(itemType==='fix'){
           const logItem=logs.find(l=>l.id===logIds[i]);
           const fixMatch=logItem?.note?.match(/修正:\s*(\d+)\s*→\s*(\d+)/);
           if(fixMatch){
@@ -1078,7 +1102,7 @@ function undoBatch(batchKey,logIds,type,items){
         }else{
           const invItem=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
           if(invItem){
-            const nq=type==='in'?Math.max(0,invItem.quantity-qty):invItem.quantity+qty;
+            const nq=itemType==='in'?Math.max(0,invItem.quantity-qty):invItem.quantity+qty;
             await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:nq})});
             invItem.quantity=nq;
           }
@@ -1760,6 +1784,136 @@ async function deleteSelectedLogs(){
     }catch(e){toast('删除失败: '+e.message)}
   });
 }
+
+// ===== CHART =====
+let invChartInstance=null;
+
+async function showChart(pid,regId){
+  const prod=products.find(p=>p.id===pid);
+  const reg=regions.find(r=>r.id===regId);
+  if(!prod)return;
+  document.getElementById('chartTitle').textContent=prod.name+' 库存趋势';
+  document.getElementById('chartSub').textContent=(reg?reg.name:'')+' · 近 30 天';
+  document.getElementById('chartOverlay').classList.add('show');
+
+  const canvas=document.getElementById('invChart');
+  if(invChartInstance){invChartInstance.destroy();invChartInstance=null}
+
+  try{
+    const now=new Date();
+    const from=new Date(now-30*86400000);
+    const allLogs=await api('stock_logs?product_id=eq.'+pid+'&region_id=eq.'+regId+'&order=created_at&limit=1000');
+    const histLogs=allLogs.filter(l=>new Date(l.created_at)>=from);
+
+    const curInv=inv.find(i=>i.product_id===pid&&i.region_id===regId);
+    const curQty=curInv?curInv.quantity:0;
+
+    const dayChanges={};
+    histLogs.forEach(l=>{
+      const d=new Date(l.created_at);
+      const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if(!dayChanges[key])dayChanges[key]=0;
+      const sign=(l.type==='in'||l.type==='transfer')?1:(l.type==='fix'?0:-1);
+      if(l.type==='fix'){
+        const m=l.note?.match(/修正:\s*(\d+)\s*→\s*(\d+)/);
+        if(m)dayChanges[key]+=(parseInt(m[2])-parseInt(m[1]));
+      }else{
+        dayChanges[key]+=sign*l.quantity;
+      }
+    });
+
+    const dates=[];
+    const quantities=[];
+    let qty=curQty;
+    const dayKeys=[];
+    for(let i=30;i>=0;i--){
+      const d=new Date(now-i*86400000);
+      const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      dayKeys.push(key);
+    }
+    dayKeys.reverse();
+    const futureChanges={};
+    dayKeys.forEach(k=>{if(dayChanges[k])futureChanges[k]=dayChanges[k]});
+    let totalFuture=0;
+    Object.values(futureChanges).forEach(v=>totalFuture+=v);
+    qty=curQty-totalFuture;
+
+    dayKeys.forEach((k,i)=>{
+      const d=new Date(k);
+      dates.push((d.getMonth()+1)+'/'+d.getDate());
+      if(dayChanges[k])qty+=dayChanges[k];
+      quantities.push(qty);
+    });
+
+    const thresholds=loadThresholds();
+    const th=thresholds[pid]||10;
+
+    invChartInstance=new Chart(canvas,{
+      type:'line',
+      data:{
+        labels:dates,
+        datasets:[{
+          label:prod.name,
+          data:quantities,
+          borderColor:'#6B8F71',
+          backgroundColor:'rgba(107,143,113,.1)',
+          fill:true,
+          tension:.3,
+          pointRadius:3,
+          pointHoverRadius:6,
+          borderWidth:2
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          annotation:{},
+          tooltip:{
+            callbacks:{
+              label:function(ctx){return ctx.parsed.y+' '+(prod.unit||'个')}
+            }
+          }
+        },
+        scales:{
+          x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
+          y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:10}}}
+        }
+      },
+      plugins:[{
+        id:'thresholdLine',
+        beforeDraw:function(chart){
+          const yScale=chart.scales.y;
+          const yPx=yScale.getPixelForValue(th);
+          const ctx=chart.ctx;
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([6,4]);
+          ctx.strokeStyle='rgba(229,115,115,.5)';
+          ctx.lineWidth=1.5;
+          ctx.moveTo(chart.chartArea.left,yPx);
+          ctx.lineTo(chart.chartArea.right,yPx);
+          ctx.stroke();
+          ctx.fillStyle='rgba(229,115,115,.7)';
+          ctx.font='10px sans-serif';
+          ctx.fillText('预警线 '+th,chart.chartArea.left+4,yPx-4);
+          ctx.restore();
+        }
+      }]
+    });
+  }catch(e){
+    console.error('chart error:',e);
+    toast('加载历史数据失败');
+  }
+}
+
+function closeChart(){
+  document.getElementById('chartOverlay').classList.remove('show');
+  if(invChartInstance){invChartInstance.destroy();invChartInstance=null}
+}
+
+document.getElementById('chartOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeChart()});
 
 // ===== INIT =====
 loadEmployees().then(()=>{checkSession()});
