@@ -705,18 +705,16 @@ function renderLog(){
   ls.forEach(l=>{
     const um=l.note?.match(/\[user:([^\]]+)\]/);
     const userName=um?um[1]:'';
-    const bm=l.note?.match(/\[batch:([^\]]+)\]/);
-    const batchKey=bm?bm[1]:'single_'+l.id;
-    const groupKey=batchKey+'|'+userName;
+    const groupKey=userName+'|'+l.product_id;
     if(!batchMap[groupKey]){
-      batchMap[groupKey]={id:batchKey,types:new Set(),time:l.created_at,items:[],reverted:false,notes:[],userName:userName,logIds:[]};
+      batchMap[groupKey]={types:new Set(),items:[],reverted:false,notes:[],userName:userName,logIds:[],firstTime:l.created_at};
       batches.push(batchMap[groupKey]);
     }
     const batch=batchMap[groupKey];
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
     batch.types.add(l.type);
-    batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity,type:l.type});
+    batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity,type:l.type,time:l.created_at});
     batch.logIds.push(l.id);
     if(l.note&&l.note.startsWith('[已回退]'))batch.reverted=true;
     const cleanNote=l.note?.replace(/\[user:[^\]]+\]\s*/,'').replace(/\[batch:[^\]]+\]\s*/,'').replace(/^\[已回退\]\s*/,'').trim();
@@ -740,7 +738,7 @@ function renderLog(){
       let qtyStr;
       if(it.type==='fix')qtyStr=`→ ${it.quantity}`;
       else{const sign=(it.type==='in'||it.type==='transfer')?'+':'-';qtyStr=`${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}`}
-      return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">${qtyStr}</span></div>`;
+      return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.region?it.region.name:'')} · ${fmtTime(it.time)}</span><span style="font-weight:700">${qtyStr}</span></div>`;
     }).join('');
 
     const allLogIdsJson=JSON.stringify(b.logIds).replace(/"/g,'&quot;');
@@ -751,8 +749,8 @@ function renderLog(){
       <input type="checkbox" class="log-select" onchange="toggleLogSelect('b${bIdx}',${allLogIdsJson})" id="chk_b${bIdx}">
       <div class="log-card ${b.reverted?'log-reverted':''}">
         <div class="log-hd">
-          <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${userTag}<span class="log-type ${typeClass}">${typeLabel} (${b.items.length}件)</span></span>
-          <span class="log-time">${fmtTime(b.time)}</span>
+          <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${userTag}<span class="log-type ${typeClass}">${typeLabel}</span><span style="font-size:12px;font-weight:600;color:var(--t)">${esc(b.items[0]?.product?.name||'')}</span></span>
+          <span class="log-time">${fmtTime(b.firstTime)}</span>
         </div>
         <div class="log-body">
           ${itemsHtml}
