@@ -1824,21 +1824,18 @@ async function showChart(pid,regId){
 
     const dates=[];
     const quantities=[];
-    let qty=curQty;
     const dayKeys=[];
     for(let i=30;i>=0;i--){
       const d=new Date(now-i*86400000);
       const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
       dayKeys.push(key);
     }
-    dayKeys.reverse();
-    const futureChanges={};
-    dayKeys.forEach(k=>{if(dayChanges[k])futureChanges[k]=dayChanges[k]});
-    let totalFuture=0;
-    Object.values(futureChanges).forEach(v=>totalFuture+=v);
-    qty=curQty-totalFuture;
+    // dayKeys: 30天前 → 今天（从左到右）
+    let totalChanges=0;
+    dayKeys.forEach(k=>{if(dayChanges[k])totalChanges+=dayChanges[k]});
+    let qty=curQty-totalChanges;
 
-    dayKeys.forEach((k,i)=>{
+    dayKeys.forEach(k=>{
       const d=new Date(k);
       dates.push((d.getMonth()+1)+'/'+d.getDate());
       if(dayChanges[k])qty+=dayChanges[k];
