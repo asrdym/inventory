@@ -92,6 +92,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .pick-btn:disabled{opacity:.3;cursor:not-allowed}
 .pick-num{font-size:18px;font-weight:800;min-width:36px;text-align:center}
 .pick-zero{color:var(--bd)}
+.pick-input{width:52px;height:36px;border:1.5px solid var(--bd);border-radius:10px;font-size:16px;font-weight:700;text-align:center;outline:none;background:var(--card);transition:var(--transition);-moz-appearance:textfield}
+.pick-input:focus{border-color:var(--pl);box-shadow:0 0 0 2px rgba(107,143,113,.15)}
+.pick-input::-webkit-inner-spin-button,.pick-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 
 /* Transfer */
 .transfer-reg{display:flex;gap:8px;margin-bottom:14px;align-items:center}
@@ -884,7 +887,7 @@ function renderOpList(){
         </div>
         <div class="pick-ctrl">
           <button class="pick-btn" onclick="adjFix('${p.id}',-1)" ${newQty<=0?'disabled':''}>−</button>
-          <div class="pick-num">${newQty}</div>
+          <input class="pick-input" type="number" min="0" value="${newQty}" oninput="inputFix('${p.id}',this.value)">
           <button class="pick-btn" onclick="adjFix('${p.id}',1)">+</button>
         </div>
         <div style="font-size:11px;min-width:44px;text-align:right">${diffStr}</div>
@@ -900,7 +903,7 @@ function renderOpList(){
       </div>
       <div class="pick-ctrl">
         <button class="pick-btn" onclick="adjPick('${p.id}',-1,${isOut?stock:99999})" ${picked<=0?'disabled':''}>−</button>
-        <div class="pick-num ${picked===0?'pick-zero':''}">${picked}</div>
+        <input class="pick-input" type="number" min="0" max="${isOut?stock:99999}" value="${picked}" oninput="inputPick('${p.id}',this.value,${isOut?stock:99999})">
         <button class="pick-btn" onclick="adjPick('${p.id}',1,${isOut?stock:99999})" ${!canInc?'disabled':''}>+</button>
       </div>
     </div>`;
@@ -913,6 +916,11 @@ function adjPick(pid,delta,max){
   if(nv===0)delete opPicks[pid];else opPicks[pid]=nv;
   renderOpList();
 }
+function inputPick(pid,val,max){
+  const n=Math.max(0,Math.min(max,parseInt(val)||0));
+  if(n===0)delete opPicks[pid];else opPicks[pid]=n;
+  // 只更新数值，不重绘避免输入失焦
+}
 
 function adjFix(pid,delta){
   const invItem=inv.find(i=>i.product_id===pid&&i.region_id===curReg);
@@ -921,6 +929,11 @@ function adjFix(pid,delta){
   const nv=Math.max(0,cur+delta);
   opPicks[pid]=nv;
   renderOpList();
+}
+function inputFix(pid,val){
+  const n=Math.max(0,parseInt(val)||0);
+  opPicks[pid]=n;
+  // 只更新数值，不重绘避免输入失焦
 }
 
 async function saveOp(){
