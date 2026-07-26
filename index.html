@@ -1847,51 +1847,49 @@ async function showChart(pid,regId){
     const thresholds=loadThresholds();
     const th=thresholds[pid]||10;
 
-    // 构建修正标记数据：修正日显示数量，其余为 null
-    const fixData=dayKeys.map(k=>fixDays.has(k)?quantities[dayKeys.indexOf(k)]:null);
-
     invChartInstance=new Chart(canvas,{
       type:'line',
       data:{
         labels:dates,
-        datasets:[
-          {
-            label:prod.name,
-            data:quantities,
-            borderColor:'#6B8F71',
-            backgroundColor:'rgba(107,143,113,.1)',
-            fill:true,
-            tension:.3,
-            pointRadius:3,
-            pointHoverRadius:6,
-            borderWidth:2
-          },
-          {
-            label:'修正',
-            data:fixData,
-            borderColor:'transparent',
-            backgroundColor:'#e57373',
-            pointRadius:7,
-            pointHoverRadius:10,
-            pointStyle:'rectRot',
-            showLine:false
-          }
-        ]
+        datasets:[{
+          label:prod.name,
+          data:quantities,
+          borderColor:'#6B8F71',
+          backgroundColor:'rgba(107,143,113,.1)',
+          fill:true,
+          tension:.3,
+          pointRadius:3,
+          pointHoverRadius:6,
+          borderWidth:2
+        }]
       },
       options:{
         responsive:true,
         maintainAspectRatio:false,
         plugins:{
-          legend:{display:true,position:'top',labels:{font:{size:11},usePointStyle:true,pointStyle:'rectRot',padding:12}},
+          legend:{display:false},
           tooltip:{
             callbacks:{
-              label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+' '+(prod.unit||'个')}
+              label:function(ctx){return ctx.parsed.y+' '+(prod.unit||'个')}
             }
           }
         },
         scales:{
-          x:{grid:{display:true,color:'rgba(0,0,0,.06)'},ticks:{font:{size:10},maxRotation:45,autoSkip:false}},
-          y:{beginAtZero:true,grid:{display:true,color:'rgba(0,0,0,.08)'},ticks:{font:{size:10},precision:0,callback:function(v){return Number.isInteger(v)?v:''}}}
+          x:{
+            grid:{display:true,color:function(ctx){return ctx.tick&&ctx.tick.minor?'rgba(0,0,0,.03)':'rgba(0,0,0,.06)'}},
+            ticks:{
+              font:{size:10},
+              maxRotation:45,
+              autoSkip:false,
+              callback:function(val,idx){return idx%2===0?this.getLabelForValue(val):''},
+              minor:{display:true}
+            }
+          },
+          y:{
+            beginAtZero:true,
+            grid:{display:true,color:'rgba(0,0,0,.06)'},
+            ticks:{font:{size:10},precision:0,callback:function(v){return Number.isInteger(v)?v:''}}
+          }
         }
       },
       plugins:[{
@@ -1911,6 +1909,63 @@ async function showChart(pid,regId){
           ctx.fillStyle='rgba(229,115,115,.7)';
           ctx.font='10px sans-serif';
           ctx.fillText('预警线 '+th,chart.chartArea.left+4,yPx-4);
+          ctx.restore();
+        }
+      },
+      {
+        id:'yMinorGrid',
+        afterDraw:function(chart){
+          const yScale=chart.scales.y;
+          const ticks=yScale.ticks;
+          if(ticks.length<2)return;
+          const step=ticks[1].value-ticks[0].value;
+          if(step<=1)return;
+          const half=step/2;
+          const ctx=chart.ctx;
+          const area=chart.chartArea;
+          ctx.save();
+          ctx.strokeStyle='rgba(0,0,0,.04)';
+          ctx.lineWidth=0.5;
+          ctx.setLineDash([3,3]);
+          for(let v=0;yScale.max>=0?v<=yScale.max:v>=yScale.max;v+=half){
+            if(ticks.some(t=>t.value===v))continue;
+            const y=yScale.getPixelForValue(v);
+            if(y<area.top||y>area.bottom)continue;
+            ctx.beginPath();
+            ctx.moveTo(area.left,y);
+            ctx.lineTo(area.right,y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      },
+      {
+        id:'fixWavyLine',
+        afterDatasetsDraw:function(chart){
+          const meta=chart.getDatasetMeta(0);
+          if(!meta||!meta.data)return;
+          const ctx=chart.ctx;
+          const pts=meta.data;
+          ctx.save();
+          ctx.strokeStyle='rgba(229,115,115,.7)';
+          ctx.lineWidth=1.5;
+          const amp=3,len=6;
+          for(let i=0;i<pts.length-1;i++){
+            if(!fixDays.has(dayKeys[i])&&!fixDays.has(dayKeys[i+1]))continue;
+            const x0=pts[i].x,y0=pts[i].y;
+            const x1=pts[i+1].x,y1=pts[i+1].y;
+            const dist=Math.sqrt((x1-x0)**2+(y1-y0)**2);
+            const steps=Math.max(Math.floor(dist/len),4);
+            const offY=10;
+            ctx.beginPath();
+            for(let s=0;s<=steps;s++){
+              const t=s/steps;
+              const px=x0+(x1-x0)*t;
+              const py=y0+(y1-y0)*t+offY+amp*Math.sin(s*Math.PI);
+              s===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+            }
+            ctx.stroke();
+          }
           ctx.restore();
         }
       }]
