@@ -1891,7 +1891,7 @@ async function showChart(pid,regId){
         },
         scales:{
           x:{grid:{display:true,color:'rgba(0,0,0,.06)'},ticks:{font:{size:10},maxRotation:45,autoSkip:false}},
-          y:{beginAtZero:true,grid:{display:true,color:'rgba(0,0,0,.08)'},ticks:{font:{size:10},precision:0,callback:function(v){return Number.isInteger(v)?v:''}}
+          y:{beginAtZero:true,grid:{display:true,color:'rgba(0,0,0,.08)'},ticks:{font:{size:10},precision:0,callback:function(v){return Number.isInteger(v)?v:''}}}
         }
       },
       plugins:[{
