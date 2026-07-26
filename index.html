@@ -705,58 +705,54 @@ function renderLog(){
   ls.forEach(l=>{
     const um=l.note?.match(/\[user:([^\]]+)\]/);
     const userName=um?um[1]:'';
-    const groupKey=userName+'|'+l.product_id+'|'+l.type;
-    if(!batchMap[groupKey]){
-      batchMap[groupKey]={types:new Set(),items:[],reverted:false,notes:[],userName:userName,logIds:[],firstTime:l.created_at};
-      batches.push(batchMap[groupKey]);
+    const bm=l.note?.match(/\[batch:([^\]]+)\]/);
+    const batchKey=bm?bm[1]:'single_'+l.id;
+    if(!batchMap[batchKey]){
+      batchMap[batchKey]={id:batchKey,type:l.type,time:l.created_at,items:[],reverted:false,note:'',userName:'',logIds:[]};
+      batches.push(batchMap[batchKey]);
     }
-    const batch=batchMap[groupKey];
+    const batch=batchMap[batchKey];
     const p=products.find(pp=>pp.id===l.product_id);
     const r=regions.find(rr=>rr.id===l.region_id);
-    batch.types.add(l.type);
-    batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity,type:l.type,time:l.created_at});
+    batch.items.push({logId:l.id,product:p,region:r,quantity:l.quantity});
     batch.logIds.push(l.id);
     if(l.note&&l.note.startsWith('[已回退]'))batch.reverted=true;
     const cleanNote=l.note?.replace(/\[user:[^\]]+\]\s*/,'').replace(/\[batch:[^\]]+\]\s*/,'').replace(/^\[已回退\]\s*/,'').trim();
-    if(cleanNote&&!batch.notes.includes(cleanNote))batch.notes.push(cleanNote);
+    if(cleanNote&&!batch.note)batch.note=cleanNote;
+    if(userName&&!batch.userName)batch.userName=userName;
   });
 
   el.innerHTML=batches.map((b,bIdx)=>{
-    const typeEntries=[...b.types];
-    const typeLabelArr=typeEntries.map(t=>{
-      if(t==='transfer')return'🔄 调货';
-      if(t==='fix')return'✏️ 修正';
-      if(t==='in')return'📥 入库';
-      return'📤 出库';
-    });
-    const typeLabel=typeLabelArr.join(' + ');
-    const typeClass=typeEntries.length===1?(typeEntries[0]==='in'?'log-in':typeEntries[0]==='out'?'log-out':typeEntries[0]==='transfer'?'log-tf':'log-fix'):'log-in';
+    const isIn=b.type==='in';
+    const isTf=b.type==='transfer';
+    let typeLabel,typeClass;
+    if(isTf){typeLabel='🔄 调货';typeClass='log-tf'}
+    else if(b.type==='fix'){typeLabel='✏️ 修正';typeClass='log-fix'}
+    else if(isIn){typeLabel='📥 入库';typeClass='log-in'}
+    else{typeLabel='📤 出库';typeClass='log-out'}
 
     const userTag=b.userName?`<span style="display:inline-block;padding:2px 8px;background:#e8f5e9;border-radius:8px;font-size:10px;font-weight:600;color:var(--pd)">👤 ${esc(b.userName)}</span>`:'';
 
-    const itemsHtml=b.items.map(it=>{
-      let qtyStr;
-      if(it.type==='fix')qtyStr=`→ ${it.quantity}`;
-      else{const sign=(it.type==='in'||it.type==='transfer')?'+':'-';qtyStr=`${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}`}
-      return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.region?it.region.name:'')} · ${fmtTime(it.time)}</span><span style="font-weight:700">${qtyStr}</span></div>`;
+    const itemsHtml=b.type==='fix'?b.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">→ ${it.quantity}</span></div>`).join(''):b.items.map(it=>{
+      const sign=isIn||isTf?'+':'-';
+      return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>${esc(it.product?it.product.name:'未知')} · ${esc(it.region?it.region.name:'')}</span><span style="font-weight:700">${sign}${it.quantity} ${esc(it.product?it.product.unit||'个':'')}</span></div>`;
     }).join('');
 
     const allLogIdsJson=JSON.stringify(b.logIds).replace(/"/g,'&quot;');
-    const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity,type:i.type}))).replace(/"/g,'&quot;');
-    const domType=typeEntries.length===1?typeEntries[0]:'in';
+    const itemsJson=JSON.stringify(b.items.map(i=>({pid:i.product?.id||'',rid:i.region?.id||'',qty:i.quantity}))).replace(/"/g,'&quot;');
 
     return`<div class="log-card-wrap">
       <input type="checkbox" class="log-select" onchange="toggleLogSelect('b${bIdx}',${allLogIdsJson})" id="chk_b${bIdx}">
       <div class="log-card ${b.reverted?'log-reverted':''}">
         <div class="log-hd">
-          <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${userTag}<span class="log-type ${typeClass}">${typeLabel}</span><span style="font-size:12px;font-weight:600;color:var(--t)">${esc(b.items[0]?.product?.name||'')}</span></span>
-          <span class="log-time">${fmtTime(b.firstTime)}</span>
+          <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${userTag}<span class="log-type ${typeClass}">${typeLabel} (${b.items.length}件)</span></span>
+          <span class="log-time">${fmtTime(b.time)}</span>
         </div>
         <div class="log-body">
           ${itemsHtml}
-          ${b.notes.length>0?`<div style="margin-top:6px;font-size:11px;color:var(--tl);padding:6px 8px;background:var(--bg);border-radius:8px">${b.notes.map(n=>esc(n)).join('<br>')}</div>`:''}
+          ${b.note?`<div style="margin-top:6px;font-size:11px;color:var(--tl);padding:6px 8px;background:var(--bg);border-radius:8px">${esc(b.note)}</div>`:''}
         </div>
-        ${!b.reverted?`<button class="log-undo" onclick="undoBatch('b${bIdx}',${allLogIdsJson},'${domType}',${itemsJson})">↩️ 回退整批</button>`:''}
+        ${!b.reverted?`<button class="log-undo" onclick="undoBatch('b${bIdx}',${allLogIdsJson},'${b.type}',${itemsJson})">↩️ 回退整批</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1076,16 +1072,17 @@ function undoBatch(batchKey,logIds,type,items){
   const desc=type==='in'?'入库':type==='out'?'出库':type==='transfer'?'调货':'修正';
   showCo(`确定回退整批${desc}操作？所有商品库存将恢复。`,async function onUndoConfirm(){
     try{
+      let toRegId=null;
+      if(type==='transfer'){
+        const firstLog=logs.find(l=>l.id===logIds[0]);
+        if(firstLog?.note){
+          const m=firstLog.note.match(/→\s*([^\]]+?)$/);
+          if(m)toRegId=regions.find(r=>r.name===m[1].trim())?.id||null;
+        }
+      }
       for(let i=0;i<logIds.length;i++){
         const{pid,rid,qty}=items[i];
-        const itemType=items[i].type||type;
-        if(itemType==='transfer'){
-          let toRegId=null;
-          const logItem=logs.find(l=>l.id===logIds[i]);
-          if(logItem?.note){
-            const m=logItem.note.match(/→\s*([^\]]+?)$/);
-            if(m)toRegId=regions.find(r=>r.name===m[1].trim())?.id||null;
-          }
+        if(type==='transfer'){
           const fromInv=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
           if(fromInv){
             await api(`inventory?id=eq.${fromInv.id}`,{method:'PATCH',body:JSON.stringify({quantity:fromInv.quantity+qty})});
@@ -1099,7 +1096,7 @@ function undoBatch(batchKey,logIds,type,items){
               toInv.quantity=nq;
             }
           }
-        }else if(itemType==='fix'){
+        }else if(type==='fix'){
           const logItem=logs.find(l=>l.id===logIds[i]);
           const fixMatch=logItem?.note?.match(/修正:\s*(\d+)\s*→\s*(\d+)/);
           if(fixMatch){
@@ -1113,7 +1110,7 @@ function undoBatch(batchKey,logIds,type,items){
         }else{
           const invItem=inv.find(ii=>ii.product_id===pid&&ii.region_id===rid);
           if(invItem){
-            const nq=itemType==='in'?Math.max(0,invItem.quantity-qty):invItem.quantity+qty;
+            const nq=type==='in'?Math.max(0,invItem.quantity-qty):invItem.quantity+qty;
             await api(`inventory?id=eq.${invItem.id}`,{method:'PATCH',body:JSON.stringify({quantity:nq})});
             invItem.quantity=nq;
           }
