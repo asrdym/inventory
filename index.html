@@ -1821,38 +1821,65 @@ async function showChart(pid,regId){
     const thresholds=loadThresholds();
     const th=thresholds[pid]||10;
 
-    // Fetch logs for all regions
-    const allRegionLogs=await api('stock_logs?product_id=eq.'+pid+'&order=created_at&limit=5000');
+    // Fetch ALL logs for the product (no region filter) to handle transfers correctly
+    const allLogs=await api('stock_logs?product_id=eq.'+pid+'&order=created_at&limit=5000');
 
     const datasets=[];
     let globalMax=0;
 
     regions.forEach((reg,ridx)=>{
-      const regLogs=allRegionLogs.filter(l=>l.region_id===reg.id);
       const curInv=inv.find(i=>i.product_id===pid&&i.region_id===reg.id);
       const curQty=curInv?curInv.quantity:0;
 
-      const dayChanges={};
-      regLogs.forEach(l=>{
+      // Build change map from ALL history (for accurate starting point)
+      const allChanges={};
+
+      // 1. Direct logs for this region
+      allLogs.filter(l=>l.region_id===reg.id).forEach(l=>{
         const d=new Date(l.created_at);
         const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-        if(!dayChanges[key])dayChanges[key]=0;
+        if(!allChanges[key])allChanges[key]=0;
         if(l.type==='fix'){
           const m=l.note?.match(/修正:\s*(\d+)\s*→\s*(\d+)/);
-          if(m)dayChanges[key]+=(parseInt(m[2])-parseInt(m[1]));
-        }else if(l.type==='in'||l.type==='transfer'){
-          dayChanges[key]+=l.quantity;
+          if(m)allChanges[key]+=(parseInt(m[2])-parseInt(m[1]));
+        }else if(l.type==='in'){
+          allChanges[key]+=l.quantity;
+        }else if(l.type==='transfer'){
+          // Transfer log is on source region; for source it's a decrease
+          allChanges[key]-=l.quantity;
         }else{
-          dayChanges[key]-=l.quantity;
+          allChanges[key]-=l.quantity;
         }
       });
 
-      let totalChanges=0;
-      dayKeys.forEach(k=>{if(dayChanges[k])totalChanges+=dayChanges[k]});
-      let qty=Math.max(0,curQty-totalChanges);
+      // 2. Transfer logs FROM other regions TO this region
+      allLogs.filter(l=>l.type==='transfer').forEach(l=>{
+        const m=l.note?.match(/→\s*([^\]]+?)$/);
+        if(!m)return;
+        const toName=m[1].trim();
+        if(toName!==reg.name)return;
+        const d=new Date(l.created_at);
+        const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        if(!allChanges[key])allChanges[key]=0;
+        allChanges[key]+=l.quantity;
+      });
 
+      // 3. Calculate starting qty from ALL history, then build 30-day series
+      let totalAllChanges=0;
+      for(const k in allChanges)totalAllChanges+=allChanges[k];
+      let qty=Math.max(0,curQty-totalAllChanges);
+
+      // Walk through ALL history to get qty at start of 30-day window
+      const allKeys=Object.keys(allChanges).sort();
+      const windowStart=dayKeys[0];
+      allKeys.forEach(k=>{
+        if(k<windowStart)qty+=allChanges[k];
+      });
+      qty=Math.max(0,qty);
+
+      // 4. Build 30-day series
       const quantities=dayKeys.map(k=>{
-        if(dayChanges[k])qty+=dayChanges[k];
+        if(allChanges[k])qty+=allChanges[k];
         qty=Math.max(0,qty);
         if(qty>globalMax)globalMax=qty;
         return qty;
