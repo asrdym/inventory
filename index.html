@@ -609,7 +609,7 @@ function renderInv(){
     return`<div class="card" onclick="showChart('${it.product_id}','${curReg}')">
       <div class="card-icon" style="background:${c}">${ic}</div>
       <div class="card-info">
-        <div class="card-name">${esc(it.prod.name)}</div>
+        <div class="card-name">${esc(it.prod.name)}<span style="font-size:11px;color:var(--tl);font-weight:400;margin-left:4px">· ${esc(regions.find(r=>r.id===curReg)?.name||'')}</span></div>
         <div class="card-meta">${it.prod.category?esc(it.prod.category)+' · ':''}${esc(it.prod.unit||'个')} · 预警线${th}</div>
       </div>
       <div class="card-qty">
